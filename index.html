@@ -53,6 +53,18 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .row button:hover{border-color:var(--accent)}
 .row button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .row button.danger{color:var(--warn)}
+.row.mini{margin-top:10px;gap:4px}
+.row.mini button{flex:1 1 0;padding:7px 2px;font-size:12px;font-family:var(--mono)}
+.list{display:flex;flex-direction:column;gap:4px;max-height:230px;overflow-y:auto}
+.list .chip{flex-direction:row;justify-content:space-between;align-items:center;gap:8px}
+.sub3{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin:14px 0 8px;font-weight:600}
+.warn{color:var(--warn);font-size:12.5px;margin:8px 0 0}
+.fields.room{margin:10px 0}
+.filebtn{position:relative;flex:1 1 40%;display:flex;align-items:center;justify-content:center;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--field);font-weight:600;font-size:13px;cursor:pointer}
+.filebtn:hover{border-color:var(--accent)}
+.filebtn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.filebtn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+#xferText{width:100%;margin-top:8px;font:12px/1.4 var(--mono);color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical}
 .help{font-size:12.5px;color:var(--mute);border-top:1px solid var(--line);padding-top:14px}
 .help ul{margin:6px 0 0;padding-left:18px}
 .help li{margin:2px 0}
@@ -80,7 +92,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 
     <section>
       <h2>Dodaj element</h2>
-      <div class="row" style="margin-bottom:8px"><button id="gK" class="on">Kuhinja</button><button id="gD">Dnevna soba</button></div>
+      <div class="row" style="margin-bottom:8px"><button id="gK" class="on">Kuhinja</button><button id="gD">Dnevna soba</button><button id="gP">Prostor</button></div>
       <div id="cat" class="grid"></div>
     </section>
 
@@ -90,15 +102,26 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <div id="editBox" hidden>
         <div id="editName"></div>
         <div class="fields">
-          <label for="fW">Širina cm<input id="fW" type="number" min="10" max="500" step="1"></label>
+          <label for="fW">Širina cm<input id="fW" type="number" min="10" max="1000" step="1"></label>
           <label for="fH">Visina cm<input id="fH" type="number" min="1" max="300" step="1"></label>
           <label for="fD">Dubina cm<input id="fD" type="number" min="2" max="300" step="1"></label>
           <label for="fE">Od poda cm<input id="fE" type="number" min="0" max="250" step="1"></label>
-          <label for="fR">Rotacija °<input id="fR" type="number" min="-360" max="360" step="15"></label>
+          <label for="fR">Rotacija °<input id="fR" type="number" min="-360" max="360" step="1"></label>
           <label for="fN" id="lN" hidden><span id="lNt">Polica</span><input id="fN" type="number" min="1" max="12" step="1"></label>
         </div>
+        <div class="row mini" id="rotRow"></div>
         <div class="sw" id="sw"></div>
+        <div id="carcBox" hidden>
+          <h3 class="sub3">Korpus</h3>
+          <div class="fields" id="carcFields"></div>
+          <div class="row" id="frontRow">
+            <button id="bHinge">Šarke: levo</button>
+            <button id="bOpen">Otvori</button>
+          </div>
+          <p id="confNote" class="warn" hidden></p>
+        </div>
         <div class="row">
+          <button id="bLock">Zaključaj</button>
           <button id="bDup">Kopiraj</button>
           <button id="bDel" class="danger">Obriši</button>
         </div>
@@ -106,24 +129,64 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     </section>
 
     <section>
+      <h2>Elementi na sceni</h2>
+      <div id="itemList" class="list"></div>
+    </section>
+
+    <section>
       <h2>Alati</h2>
       <div class="row">
         <button id="bMeasure">Merenje</button>
         <button id="bSnap" class="on">Prianjanje</button>
+        <button id="bOpenAll">Otvori sve</button>
+        <button id="bArcs">Lukovi zamaha</button>
+        <button id="bXray">Providni frontovi</button>
         <button id="bSave">Sačuvaj</button>
         <button id="bLoad">Učitaj</button>
+        <button id="bLockAll">Zaključaj sve</button>
+        <button id="bUnlockAll">Otključaj sve</button>
         <button id="bSample">Primer kuhinje</button>
         <button id="bSampleL">Primer dnevne sobe</button>
         <button id="bClear" class="danger">Obriši sve</button>
       </div>
     </section>
 
+    <section>
+      <h2>Prostor</h2>
+      <div class="row">
+        <button id="bWallDraw">Crtaj zidove</button>
+        <button id="bWalls" class="on">Zidovi vidljivi</button>
+      </div>
+      <div class="fields room">
+        <label for="fRoomW">Širina sobe cm<input id="fRoomW" type="number" min="100" max="2000" step="5" value="400"></label>
+        <label for="fRoomL">Dužina sobe cm<input id="fRoomL" type="number" min="100" max="2000" step="5" value="350"></label>
+      </div>
+      <div class="row"><button id="bRoom">Napravi sobu</button></div>
+      <p class="note">Elementi se lepe leđima uz zid kad ih privučeš. Zidove iz Space Setup-a i sidro u sobi nađeš u AR meniju, tab Alati.</p>
+    </section>
+
+    <section>
+      <h2>Prenos plana</h2>
+      <p class="note" style="margin:0 0 8px">Plan na računaru i na Quest-u se čuvaju odvojeno. Preuzmi fajl ili kopiraj tekst ovde, pa ga uvezi na drugom uređaju.</p>
+      <div class="row">
+        <button id="bExport">Preuzmi fajl</button>
+        <label class="filebtn" for="fImport">Otvori fajl<input id="fImport" type="file" accept=".json,application/json"></label>
+        <button id="bCopy">Kopiraj tekst</button>
+        <button id="bPaste">Učitaj iz teksta</button>
+      </div>
+      <textarea id="xferText" rows="3" placeholder="Ovde nalepi tekst plana sa drugog uređaja" spellcheck="false"></textarea>
+    </section>
+
     <section class="help">
       <h2>Kontrole u AR</h2>
       <ul>
         <li>Meni je na levom kontroleru; desnim ciljaš i okidaš.</li>
-        <li>Okidač na elementu: uhvati i prevuci po podu.</li>
-        <li>Desni džojstik: levo/desno rotira, gore/dole podiže.</li>
+        <li>Okidač na elementu: uhvati i prevuci po podu. Element se zaustavlja o druge i spaja u uglu.</li>
+        <li>Desni džojstik: levo/desno rotira (lagan pritisak = fino), gore/dole podiže.</li>
+        <li>Tab Lista u meniju: izaberi element sa spiska. Zaključan element se ne pomera.</li>
+        <li>Dugme A na desnom kontroleru otvara i zatvara vrata i fioke elementa na koji ciljaš.</li>
+        <li>Tab Korpus: vrata, fioke, police, pregrade, debljina ploče, sokla, strana šarki.</li>
+        <li>Alati: Pomeri plan (okidač na podu i vuci, džojstik okreće), pa Usidri plan da ostane na mestu u sobi.</li>
         <li>Grip na levom kontroleru sakriva ili vraća meni.</li>
       </ul>
     </section>
@@ -175,13 +238,53 @@ CAT.push(
   {id:'desk',    name:'Radni sto',     w:140,h:75, d:70, e:0,        g:'d', c:'#b88a5a'},
   {id:'rug',     name:'Tepih',         w:200,h:1.5,d:300,e:0,        g:'d', c:'#d6c7a8'},
   {id:'lamp',    name:'Podna lampa',   w:35, h:160,d:35, e:0,        g:'d'},
-  {id:'plant',   name:'Biljka',        w:40, h:110,d:40, e:0,        g:'d', c:'#d6c7a8'}
+  {id:'plant',   name:'Biljka',        w:40, h:110,d:40, e:0,        g:'d', c:'#d6c7a8'},
+  {id:'zid',     name:'Zid',           w:300,h:260,d:10, e:0,        g:'p', c:'#dfe3e6'},
+  {id:'stub',    name:'Stub',          w:40, h:260,d:40, e:0,        g:'p', c:'#dfe3e6'}
 );
 const HAS_N={shelf:{label:'Polica',min:1,max:12},sofa:{label:'Sedišta',min:1,max:5}};
 const byId=Object.fromEntries(CAT.map(c=>[c.id,c]));
-const LOWER=['base','drawers','sink','dish','hob','island'];
+
+/* ---------- korpus: parametri ---------- */
+const CARC=['base','drawers','sink','island','wall','tall','wardrobe','sideboard','tvunit'];
+const LOWTOP=['base','drawers','sink','island'];
+const CDEF={
+  base:{nd:1,nf:0,ns:1,nv:0,t:18,pl:10,tp:4,hs:0},
+  drawers:{nd:0,nf:3,ns:0,nv:0,t:18,pl:10,tp:4,hs:0},
+  sink:{nd:2,nf:0,ns:0,nv:0,t:18,pl:10,tp:4,hs:0},
+  island:{nd:2,nf:0,ns:1,nv:1,t:18,pl:10,tp:4,hs:0},
+  wall:{nd:1,nf:0,ns:1,nv:0,t:18,pl:0,tp:0,hs:0},
+  tall:{nd:1,nf:0,ns:4,nv:0,t:18,pl:10,tp:0,hs:1},
+  wardrobe:{nd:2,nf:0,ns:4,nv:1,t:18,pl:6,tp:0,hs:0},
+  sideboard:{nd:1,nf:0,ns:1,nv:2,t:18,pl:14,tp:0,hs:0},
+  tvunit:{nd:0,nf:1,ns:0,nv:2,t:18,pl:8,tp:0,hs:0},
+  hob:{pl:10,tp:4}, dish:{pl:10,tp:4}, shelf:{t:25}
+};
+const PDEF={
+  nd:{l:'Vrata po koloni',min:0,max:2,st:1},
+  nf:{l:'Fioke',min:0,max:6,st:1},
+  ns:{l:'Police',min:0,max:8,st:1},
+  nv:{l:'Pregrade',min:0,max:6,st:1},
+  t:{l:'Ploča mm',min:12,max:25,st:1},
+  pl:{l:'Sokla cm',min:0,max:20,st:1},
+  tp:{l:'Radna ploča cm',min:1,max:6,st:0.5}
+};
+function paramKeys(it){
+  const k=it.kind;
+  if(k==='hob'||k==='dish') return ['pl','tp'];
+  if(k==='shelf') return ['t'];
+  if(CARC.indexOf(k)<0) return [];
+  const r=['nd','nf','ns','nv','t'];
+  if(k!=='wall') r.push('pl');
+  if(LOWTOP.indexOf(k)>=0) r.push('tp');
+  return r;
+}
+function plLabel(it){ return (it.kind==='sideboard'||it.kind==='tvunit')?'Nogice cm':'Sokla cm'; }
+const isWallK=function(k){ return k==='zid'||k==='stub'; };
 
 let items=[], sel=null, nextId=1, snapOn=true, measureOn=false;
+let xray=false, showArcs=false, wallsShow=true;
+const DOOR_ANG=100;
 
 /* ---------- materijali ---------- */
 const matCache={};
@@ -189,7 +292,141 @@ function mat(color,rough,metal){
   const k=color+'|'+(rough??.6)+'|'+(metal??.05);
   return matCache[k]||(matCache[k]=new THREE.MeshStandardMaterial({color:color,roughness:rough??.6,metalness:metal??.05}));
 }
+function matX(color){
+  const k='x|'+color;
+  return matCache[k]||(matCache[k]=new THREE.MeshStandardMaterial({color:color,roughness:.6,transparent:true,opacity:.22,depthWrite:false}));
+}
 const STEEL=()=>mat('#b9c0c6',.35,.85), BODY=()=>mat('#e6e3dc',.8,0), STONE=()=>mat('#5a6066',.5,.1), DARK=()=>mat('#1b1d20',.4,.2);
+const WALL_MAT=new THREE.MeshStandardMaterial({color:'#dfe3e6',roughness:.95});
+const WALL_FADE=new THREE.MeshStandardMaterial({color:'#dfe3e6',roughness:.95,transparent:true,opacity:.14,depthWrite:false});
+const WALL_AR=new THREE.MeshStandardMaterial({color:'#bfe6f2',roughness:.95,transparent:true,opacity:.18,depthWrite:false});
+
+/* ---------- korpus: delovi (u metrima, lokalno: centar na podu, front ka +z) ---------- */
+function carcass(it){
+  const k=it.kind, W=it.w*M, H=it.h*M, D=it.d*M;
+  const t=Math.max(.012,(it.t||18)/1000), ft=.018, g=.003, hdf=.003;
+  const low=LOWTOP.indexOf(k)>=0, legs=(k==='sideboard'||k==='tvunit'), isl=(k==='island');
+  const pl=k==='wall'?0:Math.max(0,(it.pl??10))*M;
+  const tp=low?Math.max(.01,(it.tp??4)*M):0;
+  const ch=Math.max(2*t+.04,H-pl-tp);
+  const cd=Math.max(.08,D-ft-(isl?ft:0));
+  const cz0=-D/2+(isl?ft:0);
+  const bd=cd-hdf, bz=cz0+hdf+bd/2;
+  const fz=cz0+cd;                      // zadnja strana fronta
+  const P=[], F=[];
+  const yb=pl+t, yt=pl+ch-t, iw=W-2*t;
+  P.push({n:'Stranica',w:t,h:ch,d:bd,x:-W/2+t/2,y:pl+ch/2,z:bz,m:'body',o:1});
+  P.push({n:'Stranica',w:t,h:ch,d:bd,x:W/2-t/2,y:pl+ch/2,z:bz,m:'body',o:1});
+  P.push({n:'Dno',w:iw,h:t,d:bd,x:0,y:pl+t/2,z:bz,m:'body',o:1});
+  if(low){
+    P.push({n:'Veznik',w:iw,h:t,d:.1,x:0,y:pl+ch-t/2,z:fz-.05,m:'body',o:1});
+    P.push({n:'Veznik',w:iw,h:t,d:.1,x:0,y:pl+ch-t/2,z:cz0+hdf+.05,m:'body',o:1});
+  } else P.push({n:'Vrh',w:iw,h:t,d:bd,x:0,y:pl+ch-t/2,z:bz,m:'body',o:1});
+  P.push({n:'Leđa HDF 3 mm',w:W-.004,h:ch-.004,d:hdf,x:0,y:pl+ch/2,z:cz0+hdf/2,m:'back',o:1});
+  const nv=Math.max(0,Math.round(it.nv||0)), nc=nv+1;
+  const cw=Math.max(.05,(iw-nv*t)/nc);
+  const colX0=function(c){ return -iw/2+c*(cw+t); };
+  for(let c=0;c<nv;c++) P.push({n:'Pregrada',w:t,h:ch-2*t,d:bd-.002,x:colX0(c)+cw+t/2,y:pl+ch/2,z:bz-.001,m:'body'});
+  if(pl>0&&!legs) P.push({n:'Sokla',w:W,h:pl-.002,d:t,x:0,y:pl/2,z:fz-.05-t/2,m:'plinth',o:1});
+  if(low) P.push({n:'Radna ploča',w:W,h:tp,d:D,x:0,y:pl+ch+tp/2,z:0,m:'top',o:1});
+  if(isl) P.push({n:'Završna leđa',w:W,h:ch,d:ft,x:0,y:pl+ch/2,z:-D/2+ft/2,m:'front',o:1});
+  const nd=Math.max(0,Math.min(2,Math.round(it.nd||0))), nf=Math.max(0,Math.round(it.nf||0));
+  const ns=Math.max(0,Math.round(it.ns||0));
+  const rows=(k==='tall')?2:1, ftop=pl+ch, fbot=pl;
+  for(let c=0;c<nc;c++){
+    const x0=c===0?-W/2:colX0(c)-t/2, x1=c===nc-1?W/2:colX0(c)+cw+t/2, cx=colX0(c)+cw/2;
+    let yTop=ftop;
+    if(nf>0){
+      const dh=nd>0?Math.min(.18,(ch*.6)/nf):ch/nf;
+      const bdp=Math.max(.25,Math.min(.55,Math.floor((bd-.02)*20)/20));
+      for(let i=0;i<nf;i++){
+        const y1=ftop-i*dh, y0=y1-dh;
+        F.push({type:'drawer',x0:x0,x1:x1,y0:y0,y1:y1,col:c,dz:bdp*.9,
+          box:{x:cx,w:cw-.026,h:Math.max(.05,dh-.07),d:bdp,y:y0+.03}});
+      }
+      yTop=ftop-nf*dh;
+      if(nd>0&&yTop-fbot>.1) P.push({n:'Međupod',w:cw-.002,h:t,d:bd-.02,x:cx,y:yTop-t/2,z:bz-.01,m:'body'});
+    }
+    if(nd>0&&yTop-fbot>.1){
+      const R=[];
+      if(rows===2){ const sp=fbot+(yTop-fbot)*.52; R.push([fbot,sp],[sp,yTop]); } else R.push([fbot,yTop]);
+      R.forEach(function(r,ri){
+        if(nd===1) F.push({type:'door',x0:x0,x1:x1,y0:r[0],y1:r[1],hinge:it.hs?'R':'L',col:c,row:ri});
+        else {
+          const xm=(x0+x1)/2;
+          F.push({type:'door',x0:x0,x1:xm,y0:r[0],y1:r[1],hinge:'L',col:c,row:ri});
+          F.push({type:'door',x0:xm,x1:x1,y0:r[0],y1:r[1],hinge:'R',col:c,row:ri});
+        }
+      });
+    }
+    const sTop=(nf>0&&nd>0)?yTop-t:(nf>0?yb:yt), sBot=yb;
+    if(ns>0&&sTop-sBot>.1){
+      for(let i=1;i<=ns;i++){
+        const y=sBot+(sTop-sBot)*i/(ns+1);
+        P.push({n:'Polica',w:cw-.002,h:t,d:bd-.02,x:cx,y:y,z:bz-.01,m:'body'});
+      }
+    }
+  }
+  const L=legs&&pl>0?[[-W/2+.05,-D/2+.05],[W/2-.05,-D/2+.05],[-W/2+.05,fz-.05],[W/2-.05,fz-.05]]:null;
+  return {P:P,F:F,legs:L,pl:pl,tp:tp,ch:ch,t:t,ft:ft,g:g,fz:fz,bd:bd,W:W,D:D};
+}
+function frontsOf(it){ return CARC.indexOf(it.kind)>=0; }
+
+function buildCarcass(it,g,frontMat){
+  const C=carcass(it);
+  const fm=xray?matX(it.color):frontMat;
+  const MB=BODY(), MBK=mat('#cfc8b9',.9,0), inner=[];
+  function box(parent,w,h,d,x,y,z,m,shadow){
+    const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);
+    b.position.set(x,y,z); b.castShadow=!!shadow; b.receiveShadow=true; parent.add(b); return b;
+  }
+  C.P.forEach(function(p){
+    const m=p.m==='body'?MB:p.m==='back'?MBK:p.m==='top'?STONE():p.m==='plinth'?DARK():fm;
+    const b=box(g,p.w,p.h,p.d,p.x,p.y,p.z,m,p.o&&p.m!=='back');
+    if(!p.o||p.m==='back') inner.push(b);
+  });
+  if(C.legs) C.legs.forEach(function(l){ box(g,.04,C.pl,.04,l[0],C.pl/2,l[1],DARK(),true); });
+  const fr=[];
+  C.F.forEach(function(f){
+    const fw=f.x1-f.x0-C.g, fh=f.y1-f.y0-C.g;
+    if(fw<.02||fh<.02) return;
+    if(f.type==='door'){
+      const Lh=f.hinge==='L', piv=new THREE.Group();
+      piv.position.set(Lh?f.x0+C.g/2:f.x1-C.g/2,f.y0+C.g/2,C.fz);
+      box(piv,fw,fh,C.ft,Lh?fw/2:-fw/2,fh/2,C.ft/2,fm,true);
+      const top=(it.kind==='wall'||(it.kind==='tall'&&f.row===1));
+      const hy=top?.05+.075:Math.max(.09,fh-.2+.075);
+      box(piv,.012,.15,.016,(Lh?1:-1)*(fw-.035),hy,C.ft+.008,STEEL(),false);
+      piv.userData={type:'door',hinge:f.hinge};
+      g.add(piv); fr.push(piv);
+    } else {
+      const grp=new THREE.Group(), cx=(f.x0+f.x1)/2;
+      box(grp,fw,fh,C.ft,cx,f.y0+C.g/2+fh/2,C.fz+C.ft/2,fm,true);
+      box(grp,Math.min(.3,fw*.5),.012,.016,cx,f.y1-C.g/2-.045,C.fz+C.ft+.008,STEEL(),false);
+      const b=f.box, z1=C.fz, st=.016;
+      [box(grp,st,b.h,b.d,b.x-b.w/2+st/2,b.y+b.h/2,z1-b.d/2,MB),
+       box(grp,st,b.h,b.d,b.x+b.w/2-st/2,b.y+b.h/2,z1-b.d/2,MB),
+       box(grp,b.w-2*st,b.h,st,b.x,b.y+b.h/2,z1-b.d+st/2,MB),
+       box(grp,b.w-2*st,b.h*.8,st,b.x,b.y+b.h*.4,z1-st/2-.002,MB),
+       box(grp,b.w,.008,b.d,b.x,b.y+.004,z1-b.d/2,MBK)].forEach(function(m){ inner.push(m); });
+      grp.userData={type:'drawer',dz:f.dz};
+      g.add(grp); fr.push(grp);
+    }
+  });
+  g.userData.fronts=fr; g.userData.inner=inner; g.userData.covered=C.F.length>0;
+  return C;
+}
+function ease(o){ return o<.5?2*o*o:1-Math.pow(-2*o+2,2)/2; }
+function applyOpen(it){
+  const g=it.mesh; if(!g||!g.userData.fronts) return;
+  const o=ease(Math.max(0,Math.min(1,it._o||0)));
+  g.userData.fronts.forEach(function(f){
+    if(f.userData.type==='door') f.rotation.y=(f.userData.hinge==='L'?-1:1)*o*DOOR_ANG*DEG;
+    else f.position.z=o*f.userData.dz;
+  });
+  const vis=xray||!g.userData.covered||(it._o||0)>0.001;
+  g.userData.inner.forEach(function(m){ m.visible=vis; });
+}
 
 /* ---------- gradnja modela ---------- */
 function buildMesh(it){
@@ -204,73 +441,36 @@ function buildMesh(it){
     const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20),m);
     c.position.set(x,y+h/2,z); c.castShadow=true; g.add(c); return c;
   }
-  const fz=D/2-0.009; // z fronta
-  function doors(y0,h,n,handleTop){
-    const dw=W/n;
-    for(let i=0;i<n;i++){
-      const cx=-W/2+dw*(i+.5);
-      add(dw-.004,h-.004,.018,cx,y0+.002,fz,front);
-      const hx=n===1?cx+dw/2-.035:(i===0?cx+dw/2-.03:cx-dw/2+.03);
-      const hy=handleTop?y0+h-.20:y0+.06;
-      add(.012,.15,.016,hx,hy,fz+.015,STEEL());
-    }
-  }
-  if(LOWER.indexOf(k)>=0){
-    const plinth=.10, top=.04, bh=H-plinth-top;
-    add(W-.02,plinth,D-.08,0,0,-.03,DARK());
-    add(W,bh,D-.02,0,plinth,-.01,BODY());
-    if(k==='drawers'){
-      const hs=[bh*.24,bh*.33,bh*.43]; let y=plinth;
-      hs.forEach(function(h){
-        add(W-.004,h-.004,.018,0,y+.002,fz,front);
-        add(W*.5,.012,.016,0,y+h-.045,fz+.015,STEEL());
-        y+=h;
-      });
-    } else if(k==='dish'){
-      add(W-.004,bh-.004,.018,0,plinth+.002,fz,mat('#a9b1b8',.35,.8));
-      add(W*.7,.014,.02,0,plinth+bh-.06,fz+.02,STEEL());
-    } else if(k==='hob'){
-      add(W-.004,bh-.004,.018,0,plinth+.002,fz,front);
-      add(W-.16,bh*.5,.006,0,plinth+bh*.12,fz+.012,DARK());
-      add(W*.8,.014,.02,0,plinth+bh-.06,fz+.02,STEEL());
-    } else if(k==='island'){
-      doors(plinth,bh,Math.max(1,Math.round(W/.6)),true);
-      add(W-.004,bh-.004,.018,0,plinth+.002,-D/2+.009,front);
-    } else {
-      doors(plinth,bh,W>.7?2:1,true);
-    }
-    // radna ploca
-    add(W,top,D+.02,0,H-top,.01,STONE());
+  const fz=D/2-0.009;
+  if(CARC.indexOf(k)>=0){
+    buildCarcass(it,g,front);
     if(k==='sink'){
       add(W*.5,.004,D*.55,-W*.08,H,0,mat('#8d959b',.3,.9));
       add(W*.4,.003,D*.42,-W*.08,H+.004,0,DARK());
       cyl(.012,.22,W*.22,H,-D*.28,STEEL());
       add(.014,.014,.14,W*.22,H+.2,-D*.21,STEEL());
     }
+  } else if(k==='dish'||k==='hob'){
+    const plinth=Math.max(0,(it.pl??10))*M, top=Math.max(.01,(it.tp??4))*M, bh=Math.max(.1,H-plinth-top);
+    if(plinth>0) add(W-.02,plinth,D-.08,0,0,-.03,DARK());
+    add(W,bh,D-.02,0,plinth,-.01,BODY());
+    if(k==='dish'){
+      add(W-.004,bh-.004,.018,0,plinth+.002,fz,mat('#a9b1b8',.35,.8));
+      add(W*.7,.014,.02,0,plinth+bh-.06,fz+.02,STEEL());
+    } else {
+      add(W-.004,bh-.004,.018,0,plinth+.002,fz,front);
+      add(W-.16,bh*.5,.006,0,plinth+bh*.12,fz+.012,DARK());
+      add(W*.8,.014,.02,0,plinth+bh-.06,fz+.02,STEEL());
+    }
+    add(W,top,D,0,H-top,0,STONE());
     if(k==='hob'){
       [[-.14,-.12,.09],[.14,-.12,.07],[-.14,.12,.07],[.14,.12,.09]].forEach(function(p){
         cyl(p[2]*(W/.6>1?1:W/.6),.008,p[0]*(W/.6),H,p[1]*(D/.6),DARK());
       });
     }
-  } else if(k==='wall'){
-    add(W,H,D-.02,0,0,-.01,BODY());
-    const n=W>.7?2:1, dw=W/n;
-    for(let i=0;i<n;i++){
-      const cx=-W/2+dw*(i+.5);
-      add(dw-.004,H-.004,.018,cx,.002,fz,front);
-      const hx=n===1?cx+dw/2-.035:(i===0?cx+dw/2-.03:cx-dw/2+.03);
-      add(.012,.15,.016,hx,.05,fz+.015,STEEL());
-    }
   } else if(k==='hood'){
     add(W,.08,D,0,0,0,STEEL());
     add(W*.5,H-.08,D*.5,0,.08,-D*.22,mat('#9aa2a9',.4,.8));
-  } else if(k==='tall'){
-    add(W,H,D-.02,0,0,-.01,BODY());
-    const lo=H*.52;
-    add(W-.004,lo-.004,.018,0,.002,fz,front);
-    add(W-.004,H-lo-.004,.018,0,lo+.002,fz,front);
-    add(.012,.18,.016,W/2-.035,lo+.12,fz+.015,STEEL());
-    add(.012,.18,.016,W/2-.035,lo-.30,fz+.015,STEEL());
   } else if(k==='fridge'){
     const steel=mat('#c4cacf',.3,.85);
     add(W,H,D,0,0,0,steel);
@@ -291,7 +491,7 @@ function buildMesh(it){
   } else if(k==='counter'){
     add(W,H,D,0,0,0,STONE());
   } else if(k==='shelf'){
-    const t=.025, n=Math.max(1,Math.round(it.n||4));
+    const t=Math.max(.012,(it.t||25)/1000), n=Math.max(1,Math.round(it.n||4));
     add(t,H,D,-W/2+t/2,0,0,front); add(t,H,D,W/2-t/2,0,0,front);
     const iw=W-2*t;
     for(let i=0;i<=n;i++){ add(iw,t,D,0,i*(H-t)/n,0,front); }
@@ -300,16 +500,6 @@ function buildMesh(it){
     add(W-.004,H-.004,.006,0,.002,-D/2+.003,front);
   } else if(k==='wshelf'){
     add(W,H,D,0,0,0,front);
-  } else if(k==='sideboard'||k==='tvunit'){
-    const leg=k==='tvunit'?.08:.14;
-    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){ add(.04,leg,.04,s[0]*(W/2-.05),0,s[1]*(D/2-.05),DARK()); });
-    add(W,H-leg,D-.02,0,leg,-.01,front);
-    const n=Math.max(2,Math.round(W/.5)), dw=W/n;
-    for(let i=0;i<n;i++){
-      const cx=-W/2+dw*(i+.5);
-      add(dw-.008,H-leg-.04,.016,cx,leg+.02,D/2-.008,front);
-      add(.1,.012,.014,cx,H-.07,D/2+.012,STEEL());
-    }
   } else if(k==='tv'){
     add(W*.3,.015,Math.min(D,.22),0,0,0,DARK());
     add(W,H-.015,.05,0,.015,0,DARK());
@@ -327,15 +517,6 @@ function buildMesh(it){
     }
     add(W,H-.30,.16,0,.30,-D/2+.08,front);
     add(arm,.28,D,-W/2+arm/2,.30,0,front); add(arm,.28,D,W/2-arm/2,.30,0,front);
-  } else if(k==='wardrobe'){
-    add(W-.02,.06,D-.06,0,0,-.02,DARK());
-    add(W,H-.06,D-.02,0,.06,-.01,BODY());
-    const n=Math.max(2,Math.round(W/.5)), dw=W/n;
-    for(let i=0;i<n;i++){
-      const cx=-W/2+dw*(i+.5);
-      add(dw-.006,H-.07,.018,cx,.065,fz,front);
-      add(.012,.3,.016,i%2===0?cx+dw/2-.04:cx-dw/2+.04,H*.45,fz+.015,STEEL());
-    }
   } else if(k==='rug'){
     add(W,H,D,0,0,0,mat(it.color,1,0));
   } else if(k==='lamp'){
@@ -353,20 +534,27 @@ function buildMesh(it){
       const s=new THREE.Mesh(new THREE.IcosahedronGeometry(W*p[2],1),leaf);
       s.position.set(p[0]*W*.5,Math.max(.3,H*p[1]),0); s.castShadow=true; g.add(s);
     });
+  } else if(isWallK(k)){
+    const b=new THREE.Mesh(new THREE.BoxGeometry(W,H,D),WALL_MAT);
+    b.position.y=H/2; b.receiveShadow=true; b.userData.zid=true; g.add(b); g.userData.wallMesh=b;
   }
-  // okvir izbora
-  const edges=new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(W+.01,H+.01,D+.01)),
-    new THREE.LineBasicMaterial({color:0x2fb4d6}));
-  edges.position.y=H/2; edges.visible=false; edges.name='outline';
-  g.add(edges);
+  // okvir izbora: providna ispuna + ivice (vidljivo i kroz druge elemente)
+  const bh=Math.max(H,.03);
+  const ol=new THREE.Group(); ol.name='outline'; ol.visible=false; ol.position.y=bh/2;
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W+.01,bh+.01,D+.01)),
+    new THREE.LineBasicMaterial({color:0x2fb4d6,depthTest:false}));
+  const fill=new THREE.Mesh(new THREE.BoxGeometry(W+.01,bh+.01,D+.01),
+    new THREE.MeshBasicMaterial({color:0x2fb4d6,transparent:true,opacity:.16,depthWrite:false}));
+  edges.userData.hl=true; fill.userData.hl=true; edges.renderOrder=5; fill.renderOrder=4;
+  ol.add(fill); ol.add(edges); g.add(ol);
   g.userData.item=it;
   g.position.set(it.x*M,it.e*M,it.z*M);
   g.rotation.y=it.rot*DEG;
+  it.mesh=g; applyOpen(it);
   return g;
 }
 function disposeGroup(g){
-  g.traverse(function(o){ if(o.geometry) o.geometry.dispose(); if(o.name==='outline'&&o.material) o.material.dispose(); });
+  g.traverse(function(o){ if(o.geometry) o.geometry.dispose(); if(o.userData&&o.userData.hl&&o.material) o.material.dispose(); });
 }
 
 /* ---------- scena ---------- */
@@ -435,73 +623,171 @@ function setLabel(sp,text){
   x.textAlign='center'; x.textBaseline='middle'; x.fillText(text,c.width/2,c.height/2+2);
   sp.userData.tex.needsUpdate=true;
 }
-const dimSprite=makeLabel(512,96,0.42); dimSprite.visible=false; scene.add(dimSprite);
+const dimSprite=makeLabel(512,96,0.42); dimSprite.visible=false; root.add(dimSprite);
 
 /* ---------- elementi ---------- */
 function addItem(kind,o){
   const c=byId[kind];
-  const it=Object.assign({id:nextId++,kind:kind,name:c.name,n:c.n,w:c.w,h:c.h,d:c.d,e:c.e,x:0,z:0,rot:0,color:c.c||PALETTE[0].c},o||{});
-  items.push(it); it.mesh=buildMesh(it); root.add(it.mesh); return it;
+  const it=Object.assign({id:nextId++,kind:kind,name:c.name,n:c.n,w:c.w,h:c.h,d:c.d,e:c.e,x:0,z:0,rot:0,color:c.c||PALETTE[0].c},CDEF[kind]||{},o||{});
+  items.push(it); buildMesh(it); root.add(it.mesh); return it;
 }
 function rebuild(it){
   root.remove(it.mesh); disposeGroup(it.mesh);
-  it.mesh=buildMesh(it); root.add(it.mesh);
-  if(it===sel) it.mesh.getObjectByName('outline').visible=true;
+  buildMesh(it); root.add(it.mesh);
+  updateOutlines();
 }
 function syncPose(it){ it.mesh.position.set(it.x*M,it.e*M,it.z*M); it.mesh.rotation.y=it.rot*DEG; }
 function removeItem(it){
+  if(hoverItem===it) hoverItem=null;
   if(sel===it) select(null);
   root.remove(it.mesh); disposeGroup(it.mesh); items.splice(items.indexOf(it),1);
 }
 function clearAll(){ select(null); items.slice().forEach(removeItem); clearMeasure(); refresh(); }
 function select(it){
-  if(sel&&sel.mesh){ const o=sel.mesh.getObjectByName('outline'); if(o) o.visible=false; }
-  sel=it;
-  if(it) it.mesh.getObjectByName('outline').visible=true;
-  refresh();
+  sel=it; refresh();
+}
+let lockWarnT=0;
+function warnLocked(){
+  const n=performance.now();
+  if(n-lockWarnT>1500){ lockWarnT=n; toast('Element je zaključan'); }
 }
 function setProp(k,v){
   if(!sel) return;
-  const lim={w:[10,500],h:[1,300],d:[2,300],e:[0,250],rot:[-360,360],n:[1,12]}[k];
+  if(sel.locked){ warnLocked(); return; }
+  const lim={w:[10,1000],h:[1,320],d:[2,300],e:[0,250],rot:[-360,360],n:[1,12],nd:[0,2],nf:[0,6],ns:[0,8],nv:[0,6],t:[12,25],pl:[0,20],tp:[1,6],hs:[0,1]}[k];
+  if(!lim) return;
   v=Math.min(lim[1],Math.max(lim[0],v));
   if(k==='rot') v=((v%360)+360)%360;
+  if(['n','nd','nf','ns','nv','t','hs'].indexOf(k)>=0) v=Math.round(v);
+  else v=Math.round(v*10)/10;
   sel[k]=v;
-  if(k==='rot'||k==='e') syncPose(sel); else { rebuild(sel); syncPose(sel); }
+  if(k==='rot'){
+    const s=resolve(sel,sel.x,sel.z); sel.x=s[0]; sel.z=s[1]; syncPose(sel);
+  } else if(k==='e') syncPose(sel);
+  else { rebuild(sel); syncPose(sel); }
   refresh();
 }
 
 /* ---------- biranje i prianjanje ---------- */
-function pickItem(rc){
-  const hits=rc.intersectObjects(root.children,true);
-  for(let i=0;i<hits.length;i++){
-    let o=hits[i].object;
-    while(o&&!o.userData.item) o=o.parent;
-    if(o) return o.userData.item;
+let hoverItem=null;
+function updateOutlines(){
+  items.forEach(function(it){
+    const ol=it.mesh&&it.mesh.getObjectByName('outline'); if(!ol) return;
+    const on=(it===sel)||(it===hoverItem);
+    ol.visible=on; if(!on) return;
+    const col=it===sel?(it.locked?0xffb347:0x2fb4d6):0xdfeff5;
+    ol.children.forEach(function(c){
+      c.material.color.setHex(col);
+      if(c.isMesh) c.material.opacity=it===sel?0.18:0.09;
+    });
+  });
+}
+function setHover(it){ if(it===hoverItem) return; hoverItem=it; updateOutlines(); }
+
+// biranje: zraka naspram malo uvecane kutije svakog elementa (lakse gadjanje)
+const _inv=new THREE.Matrix4(), _o=new THREE.Vector3(), _d=new THREE.Vector3();
+function rayBox(it,ray){
+  it.mesh.updateMatrixWorld(true);
+  _inv.copy(it.mesh.matrixWorld).invert();
+  _o.copy(ray.origin).applyMatrix4(_inv);
+  _d.copy(ray.direction).transformDirection(_inv);
+  const pad=0.035, H=Math.max(it.h*M,0.03);
+  const mn=[-it.w*M/2-pad,-pad,-it.d*M/2-pad], mx=[it.w*M/2+pad,H+pad,it.d*M/2+pad];
+  const o=[_o.x,_o.y,_o.z], d=[_d.x,_d.y,_d.z];
+  let t0=-Infinity, t1=Infinity;
+  for(let i=0;i<3;i++){
+    if(Math.abs(d[i])<1e-9){ if(o[i]<mn[i]||o[i]>mx[i]) return null; continue; }
+    let a=(mn[i]-o[i])/d[i], b=(mx[i]-o[i])/d[i];
+    if(a>b){ const s=a; a=b; b=s; }
+    if(a>t0) t0=a; if(b<t1) t1=b;
+    if(t0>t1) return null;
   }
-  return null;
+  if(t1<0) return null;
+  return Math.max(t0,0);
+}
+function pickItem(rc){
+  let best=null, bt=Infinity, bp=9;
+  items.forEach(function(it){
+    const w=isWallK(it.kind);
+    if(w&&!wallsShow) return;
+    const t=rayBox(it,rc.ray); if(t===null) return;
+    const pr=it.kind==='rug'?2:(w?1:0);
+    if(pr<bp||(pr===bp&&t<bt)){ bp=pr; bt=t; best=it; }
+  });
+  return best;
 }
 function pickPoint(rc){
   const hits=rc.intersectObjects(root.children,true);
-  for(let i=0;i<hits.length;i++){ if(hits[i].object.type!=='LineSegments') return hits[i].point.clone(); }
+  for(let i=0;i<hits.length;i++){
+    const o=hits[i].object;
+    if(!o.isMesh||o.userData.hl||!o.visible) continue;
+    let a=o.parent, ok=true; while(a){ if(!a.visible){ ok=false; break; } a=a.parent; }
+    if(ok) return hits[i].point.clone();
+  }
   const p=new THREE.Vector3();
   return rc.ray.intersectPlane(floorPlane,p)?p:null;
 }
 function isRight(it){ return Math.abs(it.rot%90)<0.01; }
 function halfExt(it){ const r=((Math.round(it.rot)%180)+180)%180; return r===90?[it.d/2,it.w/2]:[it.w/2,it.d/2]; }
+function yOv(a,b){ return a.e<b.e+b.h-0.5 && b.e<a.e+a.h-0.5; }
+const SOFT={chair:['table','desk','island','counter','coffee']};
+function canCollide(a,b){
+  if(a.kind==='rug'||b.kind==='rug') return false;
+  if(isWallK(a.kind)&&isWallK(b.kind)) return false;
+  if(SOFT[a.kind]&&SOFT[a.kind].indexOf(b.kind)>=0) return false;
+  if(SOFT[b.kind]&&SOFT[b.kind].indexOf(a.kind)>=0) return false;
+  return yOv(a,b);
+}
+function frame(it){ const r=it.rot*DEG, c=Math.cos(r), s=Math.sin(r); return [[c,-s],[s,c]]; }
+// SAT za rotirane pravougaonike: vraca najmanji pomeraj koji razdvaja a (na x,z) od b
+function overlapMTV(a,ax,az,b){
+  const fa=frame(a), fb=frame(b);
+  const dx=b.x-ax, dz=b.z-az;
+  const axes=[fa[0],fa[1],fb[0],fb[1]];
+  let best=Infinity, bx=0, bz=0;
+  for(let i=0;i<4;i++){
+    const n=axes[i];
+    const ra=a.w/2*Math.abs(fa[0][0]*n[0]+fa[0][1]*n[1])+a.d/2*Math.abs(fa[1][0]*n[0]+fa[1][1]*n[1]);
+    const rb=b.w/2*Math.abs(fb[0][0]*n[0]+fb[0][1]*n[1])+b.d/2*Math.abs(fb[1][0]*n[0]+fb[1][1]*n[1]);
+    const dist=dx*n[0]+dz*n[1];
+    const ov=ra+rb-Math.abs(dist);
+    if(ov<=0.05) return null;
+    if(ov<best){ best=ov; const sg=dist>=0?-1:1; bx=n[0]*sg*ov; bz=n[1]*sg*ov; }
+  }
+  return [bx,bz];
+}
+function resolve(it,x,z){
+  for(let k=0;k<6;k++){
+    let moved=false;
+    for(let i=0;i<items.length;i++){
+      const o=items[i];
+      if(o===it||!canCollide(it,o)) continue;
+      const m=overlapMTV(it,x,z,o);
+      if(m){ x+=m[0]+Math.sign(m[0])*0.02; z+=m[1]+Math.sign(m[1])*0.02; moved=true; }
+    }
+    if(!moved) break;
+  }
+  return [x,z];
+}
+// prianjanje: mreza 5 cm + ivice/uglovi susednih elemenata (i pod pravim uglom, za L spoj)
 function snapPos(it,x,z){
   if(!snapOn) return [x,z];
   let sx=Math.round(x/5)*5, sz=Math.round(z/5)*5;
   if(isRight(it)){
-    const he=halfExt(it), hw=he[0], hd=he[1];
-    let bx=6, bz=6, rx=sx, rz=sz;
+    const he=halfExt(it), hw=he[0], hd=he[1], R=8;
+    let bx=R, bz=R, rx=sx, rz=sz;
     items.forEach(function(o){
-      if(o===it||!isRight(o)) return;
-      const oe=halfExt(o), ow=oe[0], od=oe[1];
-      if(Math.abs(z-o.z)<od+hd+10){
-        [o.x-ow-hw,o.x+ow+hw,o.x-ow+hw,o.x+ow-hw].forEach(function(c){ const d=Math.abs(x-c); if(d<bx){bx=d;rx=c;} });
+      if(o===it||!isRight(o)||o.kind==='rug') return;
+      const oe=halfExt(o), ow=oe[0], od=oe[1], vo=yOv(it,o);
+      if(Math.abs(z-o.z)<od+hd+R){
+        const cs=[o.x,o.x-ow+hw,o.x+ow-hw];
+        if(vo){ cs.push(o.x-ow-hw,o.x+ow+hw); }
+        cs.forEach(function(c){ const d=Math.abs(x-c); if(d<bx){ bx=d; rx=c; } });
       }
-      if(Math.abs(x-o.x)<ow+hw+10){
-        [o.z-od-hd,o.z+od+hd,o.z-od+hd,o.z+od-hd].forEach(function(c){ const d=Math.abs(z-c); if(d<bz){bz=d;rz=c;} });
+      if(Math.abs(x-o.x)<ow+hw+R){
+        const cs=[o.z,o.z-od+hd,o.z+od-hd];
+        if(vo){ cs.push(o.z-od-hd,o.z+od+hd); }
+        cs.forEach(function(c){ const d=Math.abs(z-c); if(d<bz){ bz=d; rz=c; } });
       }
     });
     sx=rx; sz=rz;
@@ -510,14 +796,20 @@ function snapPos(it,x,z){
 }
 let dragOff=[0,0];
 function beginDrag(rc){
+  if(!sel||sel.locked) return false;
   const p=new THREE.Vector3();
-  if(sel&&rc.ray.intersectPlane(floorPlane,p)) dragOff=[sel.x-p.x*100,sel.z-p.z*100]; else dragOff=[0,0];
+  if(rc.ray.intersectPlane(floorPlane,p)){ root.worldToLocal(p); dragOff=[sel.x-p.x*100,sel.z-p.z*100]; } else dragOff=[0,0];
+  return true;
 }
 function dragTo(rc){
-  if(!sel) return;
+  if(!sel||sel.locked) return;
   const p=new THREE.Vector3();
   if(!rc.ray.intersectPlane(floorPlane,p)) return;
-  const s=snapPos(sel,p.x*100+dragOff[0],p.z*100+dragOff[1]);
+  root.worldToLocal(p);
+  let s=snapPos(sel,p.x*100+dragOff[0],p.z*100+dragOff[1]);
+  const ws=wallSnap(sel,s[0],s[1]);
+  if(ws){ s=[ws.x,ws.z]; sel.rot=ws.rot; }
+  s=resolve(sel,s[0],s[1]);
   sel.x=s[0]; sel.z=s[1]; syncPose(sel); refresh(true);
 }
 function spawnPoint(){
@@ -526,8 +818,9 @@ function spawnPoint(){
     const pos=new THREE.Vector3().setFromMatrixPosition(xc.matrixWorld);
     const f=new THREE.Vector3(0,0,-1).applyQuaternion(new THREE.Quaternion().setFromRotationMatrix(xc.matrixWorld));
     f.y=0; if(f.lengthSq()<1e-4) f.set(0,0,-1); f.normalize();
-    xrCamYaw=Math.round(Math.atan2(-f.x,-f.z)/DEG/15)*15;
-    return [(pos.x+f.x*1.0)*100,(pos.z+f.z*1.0)*100];
+    xrCamYaw=((Math.round((Math.atan2(-f.x,-f.z)-root.rotation.y)/DEG/15)*15)%360+360)%360;
+    const wp=new THREE.Vector3(pos.x+f.x,0,pos.z+f.z); root.worldToLocal(wp);
+    return [wp.x*100,wp.z*100];
   }
   xrCamYaw=null;
   return [orb.target.x*100,orb.target.z*100];
@@ -536,6 +829,7 @@ function spawn(kind){
   const p=spawnPoint();
   const it=addItem(kind,{x:Math.round(p[0]/5)*5,z:Math.round(p[1]/5)*5});
   if(renderer.xr.isPresenting&&xrCamYaw!==null) it.rot=xrCamYaw;
+  { const s=resolve(it,it.x,it.z); it.x=s[0]; it.z=s[1]; }
   syncPose(it); select(it); xrTab=1; panelDirty=true; return it;
 }
 let xrCamYaw=null;
@@ -569,6 +863,199 @@ function addMeasurePoint(p){
   refresh(true);
 }
 
+
+/* ---------- otvaranje: provera sudara zamaha ---------- */
+function toWorld(it,lx,lz){
+  const r=it.rot*DEG, c=Math.cos(r), s=Math.sin(r);
+  return [it.x+(lx*c+lz*s)*100, it.z+(-lx*s+lz*c)*100];
+}
+function inRect(o,px,pz,pad){
+  const r=o.rot*DEG, c=Math.cos(r), s=Math.sin(r), dx=px-o.x, dz=pz-o.z;
+  const lx=dx*c-dz*s, lz=dx*s+dz*c;
+  return Math.abs(lx)<o.w/2-pad&&Math.abs(lz)<o.d/2-pad;
+}
+function swingCheck(it){
+  it._conf=[]; it._C=null;
+  if(!frontsOf(it)) return;
+  const C=carcass(it), zf=C.fz+C.ft, all=new Set();
+  C.F.forEach(function(f){
+    const y0=it.e+f.y0*100, y1=it.e+f.y1*100, pts=[], hit=new Set();
+    if(f.type==='door'){
+      const Lh=f.hinge==='L', hx=Lh?f.x0:f.x1, fw=f.x1-f.x0, sg=Lh?1:-1;
+      for(let a=10;a<=DOOR_ANG;a+=10){
+        const ar=a*DEG;
+        [.15,.34,.67,1].forEach(function(q){ pts.push([hx+sg*q*fw*Math.cos(ar),zf+q*fw*Math.sin(ar)]); });
+      }
+    } else {
+      [.33,.66,1].forEach(function(q){ [.02,.5,.98].forEach(function(xf){ pts.push([f.x0+(f.x1-f.x0)*xf,zf+f.dz*q]); }); });
+    }
+    pts.forEach(function(p){
+      const w=toWorld(it,p[0],p[1]);
+      items.forEach(function(o){
+        if(o===it||o.kind==='rug') return;
+        if(y1<=o.e+0.5||y0>=o.e+o.h-0.5) return;
+        if(inRect(o,w[0],w[1],0.5)) hit.add(o);
+      });
+    });
+    f.hits=Array.from(hit);
+    f.hits.forEach(function(o){ all.add(o.name); });
+  });
+  it._C=C; it._conf=Array.from(all);
+}
+const ARC_OK=new THREE.LineBasicMaterial({color:0x2fb4d6,depthTest:false});
+const ARC_BAD=new THREE.LineBasicMaterial({color:0xff5a3c,depthTest:false});
+function updateArcs(){
+  items.forEach(function(it){
+    const g=it.mesh; if(!g) return;
+    const old=g.getObjectByName('arcs');
+    if(old){ g.remove(old); old.traverse(function(o){ if(o.geometry) o.geometry.dispose(); }); }
+    const C=it._C; if(!C||!(showArcs||it===sel)) return;
+    const grp=new THREE.Group(); grp.name='arcs';
+    const zf=C.fz+C.ft;
+    C.F.forEach(function(f){
+      const pts=[], y=f.y0+.01, m=(f.hits&&f.hits.length)?ARC_BAD:ARC_OK;
+      if(f.type==='door'){
+        const Lh=f.hinge==='L', hx=Lh?f.x0:f.x1, fw=f.x1-f.x0, sg=Lh?1:-1;
+        pts.push(new THREE.Vector3(hx,y,zf));
+        for(let a=0;a<=DOOR_ANG;a+=5){ const ar=a*DEG; pts.push(new THREE.Vector3(hx+sg*fw*Math.cos(ar),y,zf+fw*Math.sin(ar))); }
+        pts.push(new THREE.Vector3(hx,y,zf));
+      } else {
+        [[f.x0,zf],[f.x1,zf],[f.x1,zf+f.dz],[f.x0,zf+f.dz],[f.x0,zf]].forEach(function(p){ pts.push(new THREE.Vector3(p[0],y,p[1])); });
+      }
+      const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),m); ln.renderOrder=6; grp.add(ln);
+    });
+    g.add(grp);
+  });
+}
+function animateFronts(dt){
+  items.forEach(function(it){
+    if(!frontsOf(it)) return;
+    const tgt=it.open?1:0; if(it._o===undefined) it._o=0;
+    if(it._o!==tgt){
+      const st=dt*2.2, d=tgt-it._o;
+      it._o=Math.abs(d)<=st?tgt:it._o+Math.sign(d)*st;
+      applyOpen(it);
+    }
+  });
+}
+function toggleOpen(it){
+  if(!it||!frontsOf(it)) return;
+  it.open=!it.open; refresh();
+}
+
+/* ---------- zidovi ---------- */
+const NOWALL=['zid','stub','rug','chair','table','coffee','island','lamp','plant','armchair'];
+function wallSnap(it,x,z){
+  if(!snapOn||NOWALL.indexOf(it.kind)>=0) return null;
+  let best=null, bd=16;
+  items.forEach(function(w){
+    if(w.kind!=='zid'||w===it) return;
+    const r=w.rot*DEG, c=Math.cos(r), s=Math.sin(r), dx=x-w.x, dz=z-w.z;
+    let lx=dx*c-dz*s; const lz=dx*s+dz*c;
+    if(Math.abs(lx)>w.w/2+it.w/2-5||Math.abs(lz)<w.d/2) return;
+    const side=lz>=0?1:-1, tgt=w.d/2+it.d/2, dist=Math.abs(Math.abs(lz)-tgt);
+    if(dist>=bd) return;
+    const Lm=w.w/2-it.w/2;
+    if(Lm>0){ if(Math.abs(lx-Lm)<8) lx=Lm; else if(Math.abs(lx+Lm)<8) lx=-Lm; }
+    const nz=side*tgt;
+    best={x:w.x+lx*c+nz*s, z:w.z-lx*s+nz*c, rot:((side>0?w.rot:w.rot+180)%360+360)%360};
+    bd=dist;
+  });
+  return best;
+}
+function floorLocal(rc){
+  const p=new THREE.Vector3();
+  if(!rc.ray.intersectPlane(floorPlane,p)) return null;
+  root.worldToLocal(p);
+  return [p.x*100,p.z*100];
+}
+let wallDraw=false, wPts=[], wLabT='';
+const wPrev=new THREE.Group(); root.add(wPrev); wPrev.visible=false;
+const wLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),
+  new THREE.LineBasicMaterial({color:0xffb347,depthTest:false}));
+wLine.renderOrder=9; wPrev.add(wLine);
+const wLab=makeLabel(320,96,0.3); wPrev.add(wLab);
+const wDot=new THREE.Mesh(new THREE.SphereGeometry(0.02,14,10),new THREE.MeshBasicMaterial({color:0xffb347,depthTest:false}));
+wDot.renderOrder=9; wPrev.add(wDot);
+function wallSnapPt(p){
+  if(!wPts.length) return snapOn?[Math.round(p[0]/5)*5,Math.round(p[1]/5)*5]:p;
+  const a=wPts[wPts.length-1], f=wPts[0];
+  if(wPts.length>=3&&Math.hypot(p[0]-f[0],p[1]-f[1])<20) return [f[0],f[1]];
+  if(!snapOn) return p;
+  let ang=Math.atan2(p[1]-a[1],p[0]-a[0]), L=Math.hypot(p[0]-a[0],p[1]-a[1]);
+  const prev=wPts.length>=2?wPts[wPts.length-2]:null;
+  const base=prev?Math.atan2(a[1]-prev[1],a[0]-prev[0]):0, q=Math.PI/2, rel=ang-base, k=Math.round(rel/q);
+  if(Math.abs(rel-k*q)<8*DEG) ang=base+k*q;
+  L=Math.round(L/5)*5;
+  return [a[0]+Math.cos(ang)*L,a[1]+Math.sin(ang)*L];
+}
+function wallPreview(p){
+  if(!wallDraw||!p){ wPrev.visible=false; return; }
+  wPrev.visible=true;
+  const q=wallSnapPt(p);
+  wDot.position.set(q[0]*M,0.01,q[1]*M);
+  if(wPts.length){
+    const a=wPts[wPts.length-1], pos=wLine.geometry.attributes.position;
+    pos.setXYZ(0,a[0]*M,0.01,a[1]*M); pos.setXYZ(1,q[0]*M,0.01,q[1]*M); pos.needsUpdate=true;
+    wLine.geometry.computeBoundingSphere();
+    wLine.visible=true; wLab.visible=true;
+    const txt=Math.round(Math.hypot(q[0]-a[0],q[1]-a[1]))+' cm';
+    if(txt!==wLabT){ wLabT=txt; setLabel(wLab,txt); }
+    wLab.position.set((a[0]+q[0])/2*M,0.18,(a[1]+q[1])/2*M);
+  } else { wLine.visible=false; wLab.visible=false; }
+}
+function makeWall(a,b){
+  const dx=b[0]-a[0], dz=b[1]-a[1], L=Math.hypot(dx,dz), th=10;
+  const r=Math.atan2(-dz,dx)/DEG;
+  const it=addItem('zid',{x:(a[0]+b[0])/2,z:(a[1]+b[1])/2,w:Math.round(L+th),d:th,rot:((r%360)+360)%360});
+  syncPose(it); return it;
+}
+function wallClick(p){
+  if(!p) return;
+  const q=wallSnapPt(p);
+  if(!wPts.length){ wPts.push(q); toast('Prva tačka postavljena. Klikni sledeći ugao.'); return; }
+  const a=wPts[wPts.length-1];
+  if(Math.hypot(q[0]-a[0],q[1]-a[1])<20) return;
+  makeWall(a,q);
+  const f=wPts[0];
+  if(wPts.length>=3&&q[0]===f[0]&&q[1]===f[1]){ act.wallDraw(); toast('Soba je zatvorena'); refresh(); return; }
+  wPts.push(q); refresh();
+}
+function segHits(o,ax,az,bx,bz){
+  const r=o.rot*DEG, c=Math.cos(r), s=Math.sin(r);
+  const loc=function(px,pz){ const dx=px-o.x, dz=pz-o.z; return [dx*c-dz*s, dx*s+dz*c]; };
+  const A=loc(ax,az), Bq=loc(bx,bz), hw=o.w/2+1, hd=o.d/2+1;
+  let t0=0, t1=1;
+  const ax2=[[A[0],Bq[0]-A[0],hw],[A[1],Bq[1]-A[1],hd]];
+  for(let i=0;i<2;i++){
+    const p=ax2[i][0], d=ax2[i][1], h=ax2[i][2];
+    if(Math.abs(d)<1e-9){ if(Math.abs(p)>h) return false; continue; }
+    let u=(-h-p)/d, v=(h-p)/d; if(u>v){ const q=u; u=v; v=q; }
+    t0=Math.max(t0,u); t1=Math.min(t1,v); if(t0>t1) return false;
+  }
+  return true;
+}
+function fadeWalls(){
+  const ar=renderer.xr.isPresenting;
+  const cx=camera.position.x*100, cz=camera.position.z*100, tx=orb.target.x*100, tz=orb.target.z*100;
+  items.forEach(function(it){
+    if(!isWallK(it.kind)) return;
+    const m=it.mesh&&it.mesh.userData.wallMesh; if(!m) return;
+    m.visible=wallsShow; if(!wallsShow) return;
+    const mt=ar?WALL_AR:(segHits(it,cx,cz,tx,tz)?WALL_FADE:WALL_MAT);
+    if(m.material!==mt) m.material=mt;
+  });
+}
+
+/* ---------- prenos plana ---------- */
+function planJSON(){ return JSON.stringify({app:'kuhinja-ar',v:2,items:items.map(strip)}); }
+function importText(txt){
+  const o=JSON.parse(txt), arr=Array.isArray(o)?o:(o&&o.items);
+  if(!Array.isArray(arr)) throw new Error('format');
+  loadData(arr);
+  return items.length;
+}
+
 /* ---------- akcije ---------- */
 let tT=0;
 function toast(m){
@@ -577,13 +1064,20 @@ function toast(m){
   xrMsg=m; xrMsgT=performance.now(); panelDirty=true;
 }
 const KEY='kuhinja-ar-v1';
-function strip(it){ return {kind:it.kind,name:it.name,n:it.n,w:it.w,h:it.h,d:it.d,e:it.e,x:it.x,z:it.z,rot:it.rot,color:it.color}; }
+const KEYS=['kind','name','locked','n','w','h','d','e','x','z','rot','color','nd','nf','ns','nv','t','pl','tp','hs'];
+function strip(it){ const o={}; KEYS.forEach(function(k){ if(it[k]!==undefined) o[k]=it[k]; }); o.locked=!!it.locked; return o; }
 function loadData(arr){
   clearAll();
-  const n=function(v,d){ return isFinite(+v)?+v:d; };
   arr.forEach(function(o){
-    const c=byId[o.kind]; if(!c) return;
-    const it=addItem(o.kind,{name:o.name||c.name,n:n(o.n,c.n),w:n(o.w,c.w),h:n(o.h,c.h),d:n(o.d,c.d),e:n(o.e,c.e),x:n(o.x,0),z:n(o.z,0),rot:n(o.rot,0),color:typeof o.color==='string'?o.color:PALETTE[0].c});
+    const c=byId[o&&o.kind]; if(!c) return;
+    const v={};
+    KEYS.forEach(function(k){
+      if(k==='kind'||o[k]===undefined) return;
+      if(k==='name'||k==='color'){ if(typeof o[k]==='string') v[k]=o[k]; }
+      else if(k==='locked') v[k]=!!o[k];
+      else if(isFinite(+o[k])) v[k]=+o[k];
+    });
+    const it=addItem(o.kind,v);
     rebuild(it); syncPose(it);
   });
   refresh();
@@ -595,11 +1089,73 @@ const act={
   color:function(c){ if(sel){ sel.color=c; rebuild(sel); refresh(); } },
   dup:function(){
     if(!sel) return; const s=sel, a=s.rot*DEG;
-    const it=addItem(s.kind,{name:s.name,n:s.n,w:s.w,h:s.h,d:s.d,e:s.e,x:s.x+Math.cos(a)*s.w,z:s.z-Math.sin(a)*s.w,rot:s.rot,color:s.color});
+    const o=strip(s); delete o.kind; o.locked=false; o.x=s.x+Math.cos(a)*s.w; o.z=s.z-Math.sin(a)*s.w;
+    const it=addItem(s.kind,o);
     syncPose(it); select(it);
   },
-  del:function(){ if(sel){ removeItem(sel); refresh(); } },
+  del:function(){ if(!sel) return; if(sel.locked){ warnLocked(); return; } removeItem(sel); refresh(); },
+  lock:function(){
+    if(!sel) return; sel.locked=!sel.locked; refresh();
+    toast(sel.locked?'Element zaključan':'Element otključan');
+  },
+  lockAll:function(){ items.forEach(function(i){ i.locked=true; }); refresh(); toast('Svi elementi su zaključani'); },
+  unlockAll:function(){ items.forEach(function(i){ i.locked=false; }); refresh(); toast('Svi elementi su otključani'); },
+  align90:function(){ if(sel) setProp('rot',Math.round(sel.rot/90)*90); },
+  step:function(dir){
+    if(!items.length) return;
+    let i=items.indexOf(sel); i=((i+dir)%items.length+items.length)%items.length;
+    select(items[i]);
+  },
+  param:function(k,d){ if(sel) setProp(k,(sel[k]??0)+d); },
+  hinge:function(){ if(sel) setProp('hs',sel.hs?0:1); },
+  open:function(){ toggleOpen(sel); },
+  openAll:function(){
+    const any=items.some(function(i){ return i.open; });
+    items.forEach(function(i){ if(frontsOf(i)) i.open=!any; });
+    refresh(); toast(any?'Sva vrata i fioke zatvoreni':'Sva vrata i fioke otvoreni');
+  },
+  arcs:function(){ showArcs=!showArcs; refresh(); toast(showArcs?'Lukovi zamaha prikazani za sve elemente':'Lukovi samo za izabrani element'); },
+  xray:function(){
+    xray=!xray;
+    items.forEach(function(i){ if(frontsOf(i)){ rebuild(i); syncPose(i); } });
+    refresh(); toast(xray?'Providni frontovi uključeni':'Providni frontovi isključeni');
+  },
+  wallDraw:function(){
+    wallDraw=!wallDraw; wPts=[]; wPrev.visible=false;
+    if(wallDraw&&measureOn) act.measure();
+    refresh(true);
+    toast(wallDraw?'Crtanje zidova: klikni uglove sobe redom. Klik na prvu tačku zatvara sobu.':'Crtanje zidova završeno');
+  },
+  walls:function(){ wallsShow=!wallsShow; refresh(true); toast(wallsShow?'Zidovi su vidljivi':'Zidovi su sakriveni (i dalje sprečavaju preklapanje)'); },
+  room:function(){
+    const W=Math.max(100,+$('fRoomW').value||400), L=Math.max(100,+$('fRoomL').value||350), th=10;
+    const cx=Math.round(orb.target.x*20)*5, cz=Math.round(orb.target.z*20)*5;
+    [[cx,cz-L/2-th/2,W+2*th,0],[cx,cz+L/2+th/2,W+2*th,0],[cx-W/2-th/2,cz,L,90],[cx+W/2+th/2,cz,L,90]].forEach(function(r){
+      const it=addItem('zid',{x:r[0],z:r[1],w:r[2],d:th,rot:r[3]}); syncPose(it);
+    });
+    refresh(); toast('Soba '+W+' × '+L+' cm je napravljena');
+  },
+  exportFile:function(){
+    const txt=planJSON(); $('xferText').value=txt;
+    try{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));
+      a.download='kuhinja-plan.json'; document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+      toast('Preuzimanje fajla kuhinja-plan.json je pokrenuto');
+    }catch(e){ toast('Preuzimanje nije uspelo, kopiraj tekst plana'); }
+  },
+  copyText:function(){
+    const ta=$('xferText'); ta.value=planJSON();
+    const fall=function(){ ta.focus(); ta.select(); toast('Tekst plana je označen, kopiraj ga'); };
+    try{ navigator.clipboard.writeText(ta.value).then(function(){ toast('Plan je kopiran'); },fall); }catch(e){ fall(); }
+  },
+  pasteText:function(){
+    try{ const n=importText($('xferText').value); toast('Plan uvezen ('+n+' elemenata)'); }
+    catch(e){ toast('Tekst nije ispravan plan. Nalepi ceo tekst koji si kopirao.'); }
+  },
   measure:function(){
+    if(!measureOn&&wallDraw) act.wallDraw();
     measureOn=!measureOn; clearMeasure(); $('bMeasure').classList.toggle('on',measureOn);
     mText=measureOn?'Izaberi dve tačke':''; toast(measureOn?'Merenje: izaberi dve tačke':'Merenje isključeno'); refresh(true);
   },
@@ -628,12 +1184,13 @@ function sampleKitchen(){
     ['dish',50,-220,0,{color:G}],
     ['hob',110,-220,0,{color:G}],
     ['base',170,-220,0,{color:G}],
-    ['wall',-90,-232.5,0,{color:B}],
+    ['wall',-90,-232.5,0,{color:B,hs:1}],
     ['wall',-30,-232.5,0,{color:B}],
     ['wall',30,-232.5,0,{color:B}],
     ['hood',110,-225,0,{}],
-    ['wall',170,-232.5,0,{color:B}],
-    ['island',20,-40,0,{color:P}],
+    ['wall',170,-232.5,0,{color:B,hs:1}],
+    ['zid',10,-255,0,{w:440}],
+    ['island',20,-40,180,{color:P}],
     ['chair',-10,25,180,{color:H}],
     ['chair',50,25,180,{color:H}]
   ];
@@ -648,6 +1205,7 @@ function sampleKitchen(){
 function sampleLiving(){
   const W='#f0f1ee', G='#3a3f44', H='#b88a5a', P='#1f5f73', S='#8d9298', R='#d6c7a8';
   const L=[
+    ['zid',0,-255,0,{w:460}],
     ['rug',0,-60,0,{color:R,w:260,d:300}],
     ['tvunit',0,-230,0,{color:G}],
     ['tv',0,-238,0,{}],
@@ -681,10 +1239,11 @@ function renderCat(){
     b.addEventListener('click',function(){ spawn(c.id); });
     catEl.appendChild(b);
   });
-  $('gK').classList.toggle('on',catGroup==='k'); $('gD').classList.toggle('on',catGroup==='d');
+  $('gK').classList.toggle('on',catGroup==='k'); $('gD').classList.toggle('on',catGroup==='d'); $('gP').classList.toggle('on',catGroup==='p');
 }
 $('gK').addEventListener('click',function(){ catGroup='k'; renderCat(); });
 $('gD').addEventListener('click',function(){ catGroup='d'; renderCat(); });
+$('gP').addEventListener('click',function(){ catGroup='p'; renderCat(); });
 renderCat();
 const swEl=$('sw');
 PALETTE.forEach(function(p){
@@ -702,6 +1261,60 @@ Object.keys(F).forEach(function(k){
 });
 $('bDup').addEventListener('click',act.dup);
 $('bDel').addEventListener('click',act.del);
+$('bLock').addEventListener('click',act.lock);
+$('bLockAll').addEventListener('click',act.lockAll);
+$('bUnlockAll').addEventListener('click',act.unlockAll);
+const rotRow=$('rotRow');
+[['−15°',-15],['−5°',-5],['−1°',-1],['+1°',1],['+5°',5],['+15°',15],['90°',null]].forEach(function(r){
+  const b=document.createElement('button'); b.textContent=r[0];
+  b.title=r[1]===null?'Poravnaj na najbliži pravi ugao':'Rotiraj '+r[0];
+  b.addEventListener('click',function(){ if(r[1]===null) act.align90(); else act.rotate(r[1]); });
+  rotRow.appendChild(b);
+});
+const listEl=$('itemList');
+function renderList(){
+  listEl.textContent='';
+  items.forEach(function(it,i){
+    const b=document.createElement('button'); b.className='chip'+(it===sel?' on':'');
+    const t=document.createElement('b'), s=document.createElement('span');
+    t.textContent=(i+1)+'. '+((it._conf&&it._conf.length)?'⚠ ':'')+it.name;
+    s.textContent=(it.locked?'zaključan  ':'')+it.w+'×'+it.h+'×'+it.d;
+    b.appendChild(t); b.appendChild(s);
+    b.addEventListener('click',function(){ select(it); });
+    listEl.appendChild(b);
+  });
+  if(!items.length){ const p=document.createElement('p'); p.className='note'; p.textContent='Scena je prazna.'; listEl.appendChild(p); }
+}
+
+const PF={}, carcFields=$('carcFields');
+['nd','nf','ns','nv','t','pl','tp'].forEach(function(k){
+  const p=PDEF[k], lab=document.createElement('label'), sp=document.createElement('span'), inp=document.createElement('input');
+  lab.htmlFor='fp_'+k; sp.textContent=p.l; inp.type='number'; inp.id='fp_'+k; inp.min=p.min; inp.max=p.max; inp.step=p.st;
+  lab.appendChild(sp); lab.appendChild(inp); carcFields.appendChild(lab);
+  inp.addEventListener('change',function(){ const v=parseFloat(inp.value); if(isNaN(v)){ refresh(); return; } setProp(k,v); });
+  PF[k]={lab:lab,inp:inp,sp:sp};
+});
+$('bHinge').addEventListener('click',act.hinge);
+$('bOpen').addEventListener('click',act.open);
+$('bOpenAll').addEventListener('click',act.openAll);
+$('bArcs').addEventListener('click',act.arcs);
+$('bXray').addEventListener('click',act.xray);
+$('bWallDraw').addEventListener('click',act.wallDraw);
+$('bWalls').addEventListener('click',act.walls);
+$('bRoom').addEventListener('click',act.room);
+$('bExport').addEventListener('click',act.exportFile);
+$('bCopy').addEventListener('click',act.copyText);
+$('bPaste').addEventListener('click',act.pasteText);
+$('fImport').addEventListener('change',function(e){
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=function(){
+    try{ const n=importText(String(r.result)); toast('Plan uvezen iz fajla ('+n+' elemenata)'); }
+    catch(err){ toast('Fajl nije ispravan plan'); }
+    e.target.value='';
+  };
+  r.readAsText(f);
+});
 $('bMeasure').addEventListener('click',act.measure);
 $('bSnap').addEventListener('click',act.snap);
 $('bSave').addEventListener('click',act.save);
@@ -711,6 +1324,7 @@ $('bSampleL').addEventListener('click',act.sampleLiving);
 $('bClear').addEventListener('click',act.clear);
 
 function refresh(light){
+  items.forEach(swingCheck);
   const has=!!sel;
   $('noSel').hidden=has; $('editBox').hidden=!has;
   if(has){
@@ -720,15 +1334,39 @@ function refresh(light){
     const hn=HAS_N[sel.kind]; $('lN').hidden=!hn;
     if(hn){ $('lNt').textContent=hn.label; F.n.min=hn.min; F.n.max=hn.max; if(document.activeElement!==F.n) F.n.value=Math.round(sel.n); }
     Array.prototype.forEach.call(swEl.children,function(b){ b.classList.toggle('on',b.dataset.c===sel.color); });
+    const keys=paramKeys(sel);
+    $('carcBox').hidden=!keys.length;
+    Object.keys(PF).forEach(function(k){
+      const on=keys.indexOf(k)>=0; PF[k].lab.hidden=!on;
+      if(!on) return;
+      if(k==='pl') PF[k].sp.textContent=plLabel(sel);
+      if(document.activeElement!==PF[k].inp) PF[k].inp.value=f(sel[k]??0);
+    });
+    const fr=frontsOf(sel);
+    $('frontRow').hidden=!fr;
+    $('bHinge').textContent='Šarke: '+(sel.hs?'desno':'levo');
+    $('bOpen').textContent=sel.open?'Zatvori':'Otvori';
+    const cn=$('confNote');
+    cn.hidden=!(sel._conf&&sel._conf.length);
+    if(!cn.hidden) cn.textContent='Vrata ili fioka pri otvaranju udara u: '+sel._conf.join(', ');
     dimSprite.visible=true;
     setLabel(dimSprite,sel.w+' × '+sel.h+' × '+sel.d+' cm');
     dimSprite.position.set(sel.x*M,sel.e*M+sel.h*M+0.16,sel.z*M);
   } else dimSprite.visible=false;
+  const nConf=items.filter(function(i){ return i._conf&&i._conf.length; }).length;
   let h;
-  if(mText&&measureOn) h='Merenje: '+mText;
-  else if(has) h=sel.name+'  ·  '+sel.w+'×'+sel.h+'×'+sel.d+' cm  ·  od poda '+sel.e+' cm  ·  '+Math.round(sel.rot)+'°';
-  else h=items.length+' elemenata na sceni';
+  if(wallDraw) h='Crtanje zidova: '+(wPts.length?'klikni sledeći ugao (Esc za kraj)':'klikni prvi ugao sobe');
+  else if(mText&&measureOn) h='Merenje: '+mText;
+  else if(has) h=sel.name+'  ·  '+sel.w+'×'+sel.h+'×'+sel.d+' cm  ·  od poda '+sel.e+' cm  ·  '+(Math.round(sel.rot*10)/10)+'°'+(sel.locked?'  ·  zaključan':'')+((sel._conf&&sel._conf.length)?'  ·  udara u: '+sel._conf.join(', '):'');
+  else h=items.length+' elemenata na sceni'+(nConf?'  ·  upozorenja pri otvaranju: '+nConf:'');
   $('hud').textContent=h;
+  $('bLock').textContent=has&&sel.locked?'Otključaj':'Zaključaj';
+  $('bOpenAll').textContent=items.some(function(i){ return i.open; })?'Zatvori sve':'Otvori sve';
+  $('bArcs').classList.toggle('on',showArcs);
+  $('bXray').classList.toggle('on',xray);
+  $('bWallDraw').classList.toggle('on',wallDraw);
+  $('bWalls').classList.toggle('on',wallsShow);
+  renderList(); updateOutlines(); updateArcs();
   panelDirty=true;
 }
 
@@ -745,12 +1383,12 @@ canvas.addEventListener('contextmenu',function(e){ e.preventDefault(); });
 canvas.addEventListener('pointerdown',function(e){
   if(renderer.xr.isPresenting) return;
   canvas.setPointerCapture(e.pointerId); rayFromEvent(e); last=[e.clientX,e.clientY]; moved=0;
-  const hit=(!measureOn&&e.button===0)?pickItem(rc):null;
-  if(hit){ select(hit); beginDrag(rc); mode='drag'; }
+  const hit=(!measureOn&&!wallDraw&&e.button===0)?pickItem(rc):null;
+  if(hit){ select(hit); mode=beginDrag(rc)?'drag':'orbit'; if(hit.locked) warnLocked(); moved=99; }
   else mode=(e.button===2||e.shiftKey)?'pan':'orbit';
 });
 canvas.addEventListener('pointermove',function(e){
-  if(!mode) return;
+  if(!mode){ if(!renderer.xr.isPresenting){ rayFromEvent(e); if(wallDraw){ setHover(null); wallPreview(floorLocal(rc)); } else setHover(pickItem(rc)); } return; }
   const dx=e.clientX-last[0], dy=e.clientY-last[1]; last=[e.clientX,e.clientY]; moved+=Math.abs(dx)+Math.abs(dy);
   if(mode==='drag'){ rayFromEvent(e); dragTo(rc); }
   else if(mode==='orbit'){ orb.t-=dx*0.006; orb.p=Math.min(1.5,Math.max(0.12,orb.p-dy*0.006)); }
@@ -762,19 +1400,27 @@ canvas.addEventListener('pointermove',function(e){
 canvas.addEventListener('pointerup',function(e){
   if(mode==='orbit'&&moved<4){
     rayFromEvent(e);
-    if(measureOn) addMeasurePoint(pickPoint(rc)); else select(null);
+    if(wallDraw) wallClick(floorLocal(rc));
+    else if(measureOn) addMeasurePoint(pickPoint(rc)); else select(null);
   }
   mode=null;
 });
 canvas.addEventListener('wheel',function(e){
   e.preventDefault(); orb.r=Math.min(20,Math.max(1.5,orb.r*(1+Math.sign(e.deltaY)*0.1)));
 },{passive:false});
+canvas.addEventListener('pointerleave',function(){ if(!mode) setHover(null); });
+canvas.addEventListener('dblclick',function(e){ if(wallDraw||measureOn) return; rayFromEvent(e); toggleOpen(pickItem(rc)); });
 window.addEventListener('keydown',function(e){
   if(/INPUT|TEXTAREA/.test((e.target&&e.target.tagName)||'')) return;
   if(e.key==='Delete'||e.key==='Backspace'){ act.del(); }
-  else if(e.key==='r'||e.key==='R'){ act.rotate(e.shiftKey?-15:15); }
+  else if(e.key==='r'||e.key==='R'){ act.rotate(e.shiftKey?-5:5); }
+  else if(e.key==='['){ act.rotate(-1); }
+  else if(e.key===']'){ act.rotate(1); }
+  else if(e.key==='l'||e.key==='L'){ act.lock(); }
+  else if(e.key==='Tab'){ e.preventDefault(); act.step(e.shiftKey?-1:1); }
   else if(e.key==='d'||e.key==='D'){ act.dup(); }
-  else if(e.key==='Escape'){ select(null); }
+  else if(e.key==='o'||e.key==='O'){ act.open(); }
+  else if(e.key==='Escape'){ if(wallDraw) act.wallDraw(); else select(null); }
 });
 
 /* ---------- XR meni (platno na levom kontroleru) ---------- */
@@ -784,62 +1430,114 @@ const px=pc.getContext('2d');
 const ptex=new THREE.CanvasTexture(pc);
 const panel=new THREE.Mesh(new THREE.PlaneGeometry(0.30,0.30),new THREE.MeshBasicMaterial({map:ptex,transparent:true,side:THREE.DoubleSide}));
 panel.rotation.x=-0.6; panel.position.set(0,0.14,-0.04); panel.visible=false;
-let xrGroup='k', btns=[], texts=[], hoverKey=null, panelHolder=null, xrSession=null;
+let xrGroup='k', xrPage=0, btns=[], texts=[], hoverKey=null, panelHolder=null, xrSession=null;
 
 function B(x,y,w,h,label,fn,o){
   btns.push(Object.assign({x:x,y:y,w:w,h:h,label:label,fn:fn,key:xrTab+':'+btns.length+':'+label},o||{}));
 }
 function stepper(y,name,val,minus,plus,step){
-  B(14,y,230,92,'−'+step,minus,{});
-  B(780,y,230,92,'+'+step,plus,{});
-  texts.push({x:512,y:y+46,t:name+'  '+val,mono:true});
+  B(14,y,230,72,'−'+step,minus,{});
+  B(780,y,230,72,'+'+step,plus,{});
+  texts.push({x:512,y:y+36,t:name+'  '+val,mono:true});
 }
 function layout(){
   btns=[]; texts=[];
-  ['Dodaj','Uredi','Alati'].forEach(function(t,i){
-    B(14+i*330,14,320,84,t,function(){ xrTab=i; panelDirty=true; },{tab:true,on:xrTab===i});
+  ['Dodaj','Uredi','Korpus','Lista','Alati'].forEach(function(t,i){
+    B(14+i*202,14,194,84,t,function(){ xrTab=i; panelDirty=true; },{tab:true,on:xrTab===i});
   });
   if(xrTab===0){
-    [['k','Kuhinja'],['d','Dnevna soba']].forEach(function(g,i){
-      B(14+i*505,114,495,72,g[1],function(){ xrGroup=g[0]; panelDirty=true; },{tab:true,on:xrGroup===g[0]});
+    [['k','Kuhinja'],['d','Dnevna soba'],['p','Prostor']].forEach(function(g,i){
+      B(14+i*337,114,327,72,g[1],function(){ xrGroup=g[0]; panelDirty=true; },{tab:true,on:xrGroup===g[0]});
     });
     CAT.filter(function(c){ return c.g===xrGroup; }).forEach(function(c,i){
-      B(14+(i%3)*330,200+((i/3)|0)*148,320,140,c.name,function(){ spawn(c.id); },{sub:c.w+'×'+c.h+'×'+c.d});
+      B(14+(i%3)*337,200+((i/3)|0)*148,327,140,c.name,function(){ spawn(c.id); },{sub:c.w+'×'+c.h+'×'+c.d});
     });
   } else if(xrTab===1){
     if(!sel){
-      texts.push({x:512,y:420,t:'Pokaži na element i okini',big:true});
-      texts.push({x:512,y:480,t:'da ga izabereš',big:true});
+      texts.push({x:512,y:400,t:'Pokaži na element i okini,',big:true});
+      texts.push({x:512,y:460,t:'ili ga izaberi iz tabe Lista',big:true});
+    } else {
+      texts.push({x:512,y:140,t:sel.name+(sel.locked?'  (zaključan)':''),big:true});
+      const f=function(v){ return Math.round(v*10)/10; };
+      let y=164;
+      const row=function(name,val,minus,plus,step){ stepper(y,name,val,minus,plus,step); y+=80; };
+      row('Širina',f(sel.w)+' cm',function(){act.resize('w',-5);},function(){act.resize('w',5);},'5');
+      row('Visina',f(sel.h)+' cm',function(){act.resize('h',-5);},function(){act.resize('h',5);},'5');
+      row('Dubina',f(sel.d)+' cm',function(){act.resize('d',-5);},function(){act.resize('d',5);},'5');
+      row('Od poda',f(sel.e)+' cm',function(){act.elev(-5);},function(){act.elev(5);},'5');
+      row('Rotacija',f(sel.rot)+'°',function(){act.rotate(-1);},function(){act.rotate(1);},'1°');
+      const hn=HAS_N[sel.kind];
+      if(hn) row(hn.label,String(Math.round(sel.n)),function(){act.resize('n',-1);},function(){act.resize('n',1);},'1');
+      [['−15°',-15],['−5°',-5],['+5°',5],['+15°',15]].forEach(function(r,i){
+        B(14+i*202,y,192,72,r[0],function(){ act.rotate(r[1]); });
+      });
+      B(14+4*202,y,192,72,'90°',act.align90);
+      y+=80;
+      PALETTE.forEach(function(p,i){
+        B(14+i*124,y,116,64,'',function(){ act.color(p.c); },{fill:p.c,sw:true,on:sel.color===p.c});
+      });
+      y+=78;
+      B(14,y,192,96,'< Preth.',function(){ act.step(-1); });
+      B(216,y,192,96,'Sled. >',function(){ act.step(1); });
+      B(418,y,192,96,sel.locked?'Otključaj':'Zaključaj',act.lock,{on:!!sel.locked});
+      B(620,y,192,96,'Kopiraj',act.dup);
+      B(822,y,192,96,'Obriši',act.del,{danger:true});
+    }
+  } else if(xrTab===2){
+    if(!sel){
+      texts.push({x:512,y:430,t:'Prvo izaberi element',big:true});
     } else {
       texts.push({x:512,y:140,t:sel.name,big:true});
-      const f=function(v){ return Math.round(v*10)/10; };
-      let y=166;
-      const row=function(name,val,minus,plus,step){ stepper(y,name,val,minus,plus,step); y+=96; };
-      row('Širina',f(sel.w)+' cm',function(){act.resize('w',-5);},function(){act.resize('w',5);},5);
-      row('Visina',f(sel.h)+' cm',function(){act.resize('h',-5);},function(){act.resize('h',5);},5);
-      row('Dubina',f(sel.d)+' cm',function(){act.resize('d',-5);},function(){act.resize('d',5);},5);
-      row('Od poda',f(sel.e)+' cm',function(){act.elev(-5);},function(){act.elev(5);},5);
-      row('Rotacija',Math.round(sel.rot)+'°',function(){act.rotate(-15);},function(){act.rotate(15);},15);
-      const hn=HAS_N[sel.kind];
-      if(hn) row(hn.label,String(Math.round(sel.n)),function(){act.resize('n',-1);},function(){act.resize('n',1);},1);
-      PALETTE.forEach(function(p,i){
-        B(14+i*124,760,116,76,'',function(){ act.color(p.c); },{fill:p.c,sw:true,on:sel.color===p.c});
+      const keys=paramKeys(sel);
+      if(!keys.length) texts.push({x:512,y:430,t:'Ovaj element nema korpus',big:true});
+      let y=164;
+      keys.forEach(function(k){
+        const p=PDEF[k], lab=k==='pl'?plLabel(sel):p.l, v=Math.round((sel[k]??0)*10)/10;
+        stepper(y,lab,String(v),function(){ act.param(k,-p.st); },function(){ act.param(k,p.st); },String(p.st));
+        y+=80;
       });
-      B(14,856,490,100,'Kopiraj',act.dup);
-      B(520,856,490,100,'Obriši',act.del,{danger:true});
+      if(frontsOf(sel)){
+        B(14,y+6,327,96,'Šarke '+(sel.hs?'desno':'levo'),act.hinge);
+        B(351,y+6,327,96,sel.open?'Zatvori':'Otvori',act.open,{on:!!sel.open});
+        B(688,y+6,327,96,'Lukovi svima',act.arcs,{on:showArcs});
+        y+=118;
+        if(sel._conf&&sel._conf.length) texts.push({x:512,y:y+24,t:'Udara u: '+sel._conf.join(', '),warn:true});
+        else texts.push({x:512,y:y+24,t:'Otvaranje je slobodno',ok:true});
+      }
     }
+  } else if(xrTab===3){
+    const per=16, pages=Math.max(1,Math.ceil(items.length/per));
+    if(xrPage>=pages) xrPage=pages-1;
+    if(!items.length) texts.push({x:512,y:400,t:'Scena je prazna',big:true});
+    items.slice(xrPage*per,(xrPage+1)*per).forEach(function(it,i){
+      B(14+(i%2)*505,114+((i/2)|0)*92,495,84,(xrPage*per+i+1)+'. '+((it._conf&&it._conf.length)?'⚠ ':'')+it.name+(it.locked?' (zaklj.)':''),
+        function(){ select(it); xrTab=1; },{on:it===sel});
+    });
+    B(14,870,320,84,'< Nazad',function(){ if(xrPage>0){ xrPage--; panelDirty=true; } });
+    texts.push({x:512,y:912,t:(xrPage+1)+' / '+pages,mono:true});
+    B(690,870,320,84,'Napred >',function(){ if(xrPage<pages-1){ xrPage++; panelDirty=true; } });
   } else {
     const L=[
       ['Merenje',act.measure,{on:measureOn}],
       ['Prianjanje',act.snap,{on:snapOn}],
+      ['Crtaj zidove',act.wallDraw,{on:wallDraw}],
+      ['Zidovi iz sobe',act.roomWalls,{}],
+      ['Zidovi vidljivi',act.walls,{on:wallsShow}],
+      ['Pomeri plan',act.movePlan,{on:planMove}],
+      [curAnchor?'Ukloni sidro':'Usidri plan',act.anchor,{on:!!curAnchor}],
+      [items.some(function(i){ return i.open; })?'Zatvori sve':'Otvori sve',act.openAll,{}],
+      ['Lukovi zamaha',act.arcs,{on:showArcs}],
+      ['Providni frontovi',act.xray,{on:xray}],
       ['Sačuvaj',act.save,{}],
       ['Učitaj',act.load,{}],
+      ['Zaključaj sve',act.lockAll,{}],
+      ['Otključaj sve',act.unlockAll,{}],
       ['Primer kuhinje',act.sample,{}],
-      ['Primer dnevne sobe',act.sampleLiving,{}],
-      ['Obriši sve',act.clear,{danger:true}]
+      ['Primer sobe',act.sampleLiving,{}],
+      ['Obriši sve',act.clear,{danger:true}],
+      ['Izađi iz AR',function(){ if(xrSession) xrSession.end(); },{}]
     ];
-    L.forEach(function(r,i){ B(14+(i%2)*505,124+((i/2)|0)*160,495,150,r[0],r[1],r[2]); });
-    B(14,124+4*160,1000,150,'Izađi iz AR',function(){ if(xrSession) xrSession.end(); },{});
+    L.forEach(function(r,i){ B(14+(i%3)*337,114+((i/3)|0)*142,327,132,r[0],r[1],r[2]); });
   }
 }
 function drawPanel(){
@@ -867,13 +1565,16 @@ function drawPanel(){
     }
   });
   texts.forEach(function(t){
-    px.fillStyle='#e5eef3';
-    px.font=t.big?'600 44px "Familjen Grotesk",system-ui,sans-serif':'600 40px "JetBrains Mono",ui-monospace,monospace';
-    px.fillText(t.t,t.x,t.y,560);
+    px.fillStyle=t.warn?'#ff8c6e':(t.ok?'#7fd6a0':'#e5eef3');
+    px.font=(t.big||t.warn||t.ok)?'600 40px "Familjen Grotesk",system-ui,sans-serif':'600 40px "JetBrains Mono",ui-monospace,monospace';
+    px.fillText(t.t,t.x,t.y,(t.warn||t.ok)?980:560);
   });
   if(xrMsg){
     px.fillStyle='#46c0de'; px.font='600 32px "Familjen Grotesk",system-ui,sans-serif';
     px.fillText(xrMsg,512,985,980);
+  } else if(sel&&sel._conf&&sel._conf.length){
+    px.fillStyle='#ff8c6e'; px.font='600 30px "Familjen Grotesk",system-ui,sans-serif';
+    px.fillText('⚠ '+sel.name+' pri otvaranju udara u: '+sel._conf.join(', '),512,985,980);
   } else if(sel&&xrTab!==1){
     px.fillStyle='#8da0ac'; px.font='500 28px "JetBrains Mono",ui-monospace,monospace';
     px.fillText(sel.name+'  '+sel.w+'×'+sel.h+'×'+sel.d+' cm',512,985,980);
@@ -920,9 +1621,11 @@ function xrSelectStart(c){
     const h=rc.intersectObject(panel)[0];
     if(h&&h.uv){ pressPanel(h.uv); buzz(c,0.4,40); return; }
   }
+  if(planMove){ const p=new THREE.Vector3(); if(rc.ray.intersectPlane(floorPlane,p)){ planDrag={c:c,p0:p.clone(),r0:root.position.clone()}; buzz(c,0.4,40); } return; }
+  if(wallDraw){ wallClick(floorLocal(rc)); buzz(c,0.4,40); return; }
   if(measureOn){ addMeasurePoint(pickPoint(rc)); buzz(c,0.3,30); return; }
   const it=pickItem(rc);
-  if(it){ select(it); xrTab=1; beginDrag(rc); c.userData.dragging=true; buzz(c,0.5,40); }
+  if(it){ select(it); xrTab=1; c.userData.dragging=beginDrag(rc); if(it.locked) warnLocked(); buzz(c,0.5,40); }
   else select(null);
 }
 const ctls=[0,1].map(function(i){
@@ -938,28 +1641,133 @@ const ctls=[0,1].map(function(i){
   c.addEventListener('connected',function(e){ c.userData.src=e.data; attachPanel(); });
   c.addEventListener('disconnected',function(){ c.userData.src=null; attachPanel(); });
   c.addEventListener('selectstart',function(){ xrSelectStart(c); });
-  c.addEventListener('selectend',function(){ c.userData.dragging=false; });
+  c.addEventListener('selectend',function(){ c.userData.dragging=false; if(planDrag&&planDrag.c===c) planDrag=null; });
   c.addEventListener('squeezestart',function(){
     if(c===panelHolder){ panel.visible=!panel.visible; panelDirty=true; }
   });
   return c;
 });
-const stickT={x:0,y:0};
+function stickCurve(v){
+  const a=Math.abs(v), dz=0.15;
+  if(a<dz) return 0;
+  const t=(a-dz)/(1-dz);
+  return (v<0?-1:1)*t*t;   // kvadratna kriva: lagan pritisak = vrlo fina rotacija
+}
 function handleSticks(dt){
   const s=renderer.xr.getSession&&renderer.xr.getSession();
-  if(!s||!sel) return;
-  let ax=0, ay=0;
+  if(!s) return;
+  let ax=0, ay=0, aBtn=false;
   s.inputSources.forEach(function(src){
     if(src.handedness==='right'&&src.gamepad){
-      const a=src.gamepad.axes;
+      const a=src.gamepad.axes, b=src.gamepad.buttons;
       ax=a.length>2?a[2]:a[0]; ay=a.length>3?a[3]:a[1];
+      aBtn=!!(b&&b[4]&&b[4].pressed);
     }
   });
-  stickT.x-=dt; stickT.y-=dt;
-  if(Math.abs(ax)<0.35) stickT.x=0;
-  else if(stickT.x<=0){ act.rotate((ax>0?-1:1)*(snapOn?15:5)); stickT.x=0.28; }
-  if(Math.abs(ay)<0.5) stickT.y=0;
-  else if(stickT.y<=0){ act.elev(ay<0?5:-5); stickT.y=0.2; }
+  if(aBtn&&!aPrev) toggleOpen(hoverItem||sel);
+  aPrev=aBtn;
+  const cx=stickCurve(ax), cy=stickCurve(ay);
+  if(planMove){ if(cx) rotatePlan(-cx*45*DEG*dt); return; }
+  if(!sel||(!cx&&!cy)) return;
+  if(sel.locked){ warnLocked(); return; }
+  if(cx) setProp('rot',sel.rot-cx*60*dt);   // do 60°/s, lagano ~1°/s
+  if(cy) setProp('e',sel.e-cy*60*dt);       // gore = podigni
+}
+
+/* ---------- plan u sobi: pomeranje, sidro, zidovi iz Space Setup-a ---------- */
+const ANCH='kuhinja-ar-anchor';
+let curAnchor=null, pendAnchor=false, pendPlanes=false, planMove=false, planDrag=null, aPrev=false;
+function setRootFromPose(pose){
+  const p=pose.transform.position, q=pose.transform.orientation;
+  const e=new THREE.Euler().setFromQuaternion(new THREE.Quaternion(q.x,q.y,q.z,q.w),'YXZ');
+  root.position.set(p.x,0,p.z); root.rotation.set(0,e.y,0); root.updateMatrixWorld(true);
+}
+function rotatePlan(da){
+  const xc=renderer.xr.getCamera(camera);
+  const P=new THREE.Vector3().setFromMatrixPosition(xc.matrixWorld);
+  const vx=root.position.x-P.x, vz=root.position.z-P.z, c=Math.cos(da), s=Math.sin(da);
+  root.position.x=P.x+vx*c+vz*s; root.position.z=P.z-vx*s+vz*c;
+  root.rotation.y+=da; root.updateMatrixWorld(true);
+}
+act.movePlan=function(){
+  if(!xrSession){ toast('Pomeranje plana radi u AR-u'); return; }
+  planMove=!planMove; planDrag=null;
+  if(planMove){
+    if(curAnchor){ curAnchor=null; }
+    toast('Okidač na podu i vuci: pomera ceo plan. Desni džojstik ga okreće. Zatim Usidri plan.');
+  } else toast('Pomeranje plana završeno');
+  panelDirty=true;
+};
+act.anchor=function(){
+  if(!xrSession){ toast('Sidro se postavlja u AR-u'); return; }
+  if(curAnchor){
+    try{ if(curAnchor.delete) curAnchor.delete(); }catch(e){}
+    curAnchor=null;
+    let h=null; try{ h=localStorage.getItem(ANCH); localStorage.removeItem(ANCH); }catch(e){}
+    if(h&&xrSession.deletePersistentAnchor) xrSession.deletePersistentAnchor(h).catch(function(){});
+    toast('Sidro je uklonjeno'); panelDirty=true; return;
+  }
+  planMove=false; pendAnchor=true;
+};
+act.roomWalls=function(){
+  if(!xrSession){ toast('Zidovi iz sobe se uvoze u AR-u'); return; }
+  pendPlanes=true;
+};
+function restoreAnchor(){
+  let h=null; try{ h=localStorage.getItem(ANCH); }catch(e){}
+  if(!h||!xrSession||!xrSession.restorePersistentAnchor) return;
+  xrSession.restorePersistentAnchor(h).then(function(a){ curAnchor=a; toast('Plan je vraćen na sačuvano mesto u sobi'); })
+    .catch(function(){ toast('Sačuvano sidro nije pronađeno. Pomeri plan i usidri ga ponovo.'); });
+}
+function createAnchor(frame,ref){
+  if(!frame.createAnchor||typeof XRRigidTransform==='undefined'){ toast('Ovaj pregledač ne podržava sidra'); return; }
+  const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,root.rotation.y,0));
+  frame.createAnchor(new XRRigidTransform({x:root.position.x,y:0,z:root.position.z},{x:q.x,y:q.y,z:q.z,w:q.w}),ref).then(function(a){
+    curAnchor=a; panelDirty=true;
+    if(a.requestPersistentHandle){
+      a.requestPersistentHandle().then(function(h){
+        let old=null; try{ old=localStorage.getItem(ANCH); }catch(e){}
+        if(old&&old!==h&&xrSession&&xrSession.deletePersistentAnchor) xrSession.deletePersistentAnchor(old).catch(function(){});
+        try{ localStorage.setItem(ANCH,h); }catch(e){}
+        toast('Plan je usidren i biće na istom mestu i sledeći put');
+      }).catch(function(){ toast('Plan je usidren dok je AR otvoren (trajno sidro nije dostupno)'); });
+    } else toast('Plan je usidren dok je AR otvoren');
+  }).catch(function(err){ toast('Sidro nije napravljeno: '+((err&&err.message)||err)); });
+}
+function importPlanes(frame,ref){
+  const ps=frame.detectedPlanes;
+  if(!ps){ toast('Zidovi iz sobe nisu dostupni. Uradi Space Setup na Quest-u i dozvoli pristup prostoru.'); return; }
+  items.filter(function(i){ return i.fromRoom; }).forEach(removeItem);
+  const m4=new THREE.Matrix4(), up=new THREE.Vector3(0,1,0);
+  let cnt=0;
+  ps.forEach(function(pl){
+    if(pl.orientation&&pl.orientation!=='vertical') return;
+    if(pl.semanticLabel&&pl.semanticLabel!=='wall') return;
+    const pose=frame.getPose(pl.planeSpace,ref);
+    if(!pose||!pl.polygon||pl.polygon.length<2) return;
+    m4.fromArray(pose.transform.matrix);
+    const pts=pl.polygon.map(function(q){ return new THREE.Vector3(q.x,q.y,q.z).applyMatrix4(m4); });
+    let ymin=Infinity, ymax=-Infinity, a=pts[0], b=pts[1], best=-1;
+    pts.forEach(function(p){ ymin=Math.min(ymin,p.y); ymax=Math.max(ymax,p.y); });
+    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
+      const d=Math.pow(pts[i].x-pts[j].x,2)+Math.pow(pts[i].z-pts[j].z,2);
+      if(d>best){ best=d; a=pts[i]; b=pts[j]; }
+    }
+    const n=new THREE.Vector3(m4.elements[4],0,m4.elements[6]);
+    if(n.lengthSq()<1e-6) return;
+    n.normalize().applyAxisAngle(up,-root.rotation.y);
+    const A=root.worldToLocal(a.clone()), Bp=root.worldToLocal(b.clone());
+    const dx=(Bp.x-A.x)*100, dz=(Bp.z-A.z)*100, L=Math.hypot(dx,dz);
+    if(L<30) return;
+    let r=Math.atan2(-dz,dx);
+    if(Math.sin(r)*n.x+Math.cos(r)*n.z<0) r+=Math.PI;
+    const th=10;
+    const it=addItem('zid',{x:(A.x+Bp.x)*50-n.x*th/2,z:(A.z+Bp.z)*50-n.z*th/2,w:Math.round(L),
+      h:Math.round(Math.max(200,(ymax-Math.max(0,ymin))*100)),d:th,rot:((r/DEG)%360+360)%360,name:'Zid (iz sobe)',locked:true});
+    it.fromRoom=true; syncPose(it); cnt++;
+  });
+  refresh();
+  toast(cnt?('Uvezeno zidova iz sobe: '+cnt+' (zaključani su)'):'Quest nije poslao nijedan zid. Proveri Space Setup.');
 }
 
 /* ---------- AR sesija ---------- */
@@ -973,7 +1781,7 @@ if(navigator.xr&&navigator.xr.isSessionSupported){
 } else noAR();
 arBtn.addEventListener('click',function(){
   if(xrSession){ xrSession.end(); return; }
-  navigator.xr.requestSession('immersive-ar',{requiredFeatures:['local-floor']}).then(function(s){
+  navigator.xr.requestSession('immersive-ar',{requiredFeatures:['local-floor'],optionalFeatures:['anchors','plane-detection']}).then(function(s){
     xrSession=s;
     s.addEventListener('end',function(){ xrSession=null; arBtn.textContent='Pokreni AR'; });
     arBtn.textContent='Izađi iz AR';
@@ -981,21 +1789,31 @@ arBtn.addEventListener('click',function(){
   }).catch(function(err){ toast('AR nije pokrenut: '+((err&&err.message)||err)); });
 });
 renderer.xr.addEventListener('sessionstart',function(){
-  scene.background=null; grid.visible=false; renderer.setClearAlpha(0); attachPanel();
+  scene.background=null; grid.visible=false; renderer.setClearAlpha(0); attachPanel(); restoreAnchor();
 });
 renderer.xr.addEventListener('sessionend',function(){
   grid.visible=true; applyStage(); resize();
   if(panel.parent) panel.parent.remove(panel);
   ctls.forEach(function(c){ c.userData.dragging=false; c.userData.dot.visible=false; });
+  curAnchor=null; planMove=false; planDrag=null; pendAnchor=false; pendPlanes=false;
+  root.position.set(0,0,0); root.rotation.set(0,0,0); root.updateMatrixWorld(true); refresh();
 });
 
 /* ---------- petlja ---------- */
 let lastT=0;
-function tick(t){
+function tick(t,frame){
   const dt=Math.min(0.1,((t-lastT)/1000)||0.016); lastT=t;
+  if(frame&&renderer.xr.isPresenting){
+    const ref=renderer.xr.getReferenceSpace();
+    if(pendAnchor){ pendAnchor=false; createAnchor(frame,ref); }
+    if(pendPlanes){ pendPlanes=false; importPlanes(frame,ref); }
+    if(curAnchor&&frame.trackedAnchors&&frame.trackedAnchors.has(curAnchor)){
+      const pose=frame.getPose(curAnchor.anchorSpace,ref); if(pose) setRootFromPose(pose);
+    }
+  }
   if(!renderer.xr.isPresenting) updateCam();
   else {
-    let hov=null;
+    let hov=null, hovItem=null;
     ctls.forEach(function(c){
       const ud=c.userData, ray=c.getObjectByName('ray'), dot=ud.dot;
       const holder=c===panelHolder&&hasOther(c);
@@ -1007,6 +1825,8 @@ function tick(t){
         const h=rc.intersectObject(panel)[0];
         if(h&&h.uv){ len=h.distance; hit=h.point; const b=btnAt(h.uv); if(b) hov=b.key; }
       }
+      if(!hit&&wallDraw) wallPreview(floorLocal(rc));
+      if(!hit&&!wallDraw&&!planMove){ const hi2=pickItem(rc); if(hi2&&!hovItem) hovItem=hi2; }
       if(!hit){
         const p=pickPoint(rc);
         if(p){ const d=p.distanceTo(rc.ray.origin); if(d<6){ len=d; hit=p; } }
@@ -1015,10 +1835,16 @@ function tick(t){
       if(hit){ dot.position.copy(hit); dot.visible=true; }
       if(ud.dragging) dragTo(rc);
     });
+    if(planDrag){
+      rayFrom(planDrag.c); const p=new THREE.Vector3();
+      if(rc.ray.intersectPlane(floorPlane,p)){ root.position.set(planDrag.r0.x+p.x-planDrag.p0.x,0,planDrag.r0.z+p.z-planDrag.p0.z); root.updateMatrixWorld(true); }
+    }
     if(hov!==hoverKey){ hoverKey=hov; panelDirty=true; }
+    setHover(hovItem);
     handleSticks(dt);
   }
-  if(xrMsg&&performance.now()-xrMsgT>3000){ xrMsg=''; panelDirty=true; }
+  animateFronts(dt); fadeWalls();
+  if(xrMsg&&performance.now()-xrMsgT>3500){ xrMsg=''; panelDirty=true; }
   if(panelDirty&&panel.visible&&renderer.xr.isPresenting){ drawPanel(); panelDirty=false; }
   renderer.render(scene,camera);
 }
