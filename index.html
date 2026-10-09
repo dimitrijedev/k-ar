@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light}html,body{margin:0}[hidden]{display:none!important}</style></head><body>
+<title>Kuhinja AR</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: full-height planner. Left rail holds catalog, editor and tools; right side is the live 3D stage. All sizes are in centimetres, set in mono. */
+:root{
+  --bg:#e8edf0; --panel:#f6f8f9; --ink:#14212a; --mute:#5b6c77; --line:#c9d3d9;
+  --accent:#0a6a86; --on-accent:#ffffff; --field:#ffffff; --stage:#dde4e8; --grid:#b7c3ca; --warn:#b23b24;
+  --ui:'Familjen Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e161b; --panel:#16212a; --ink:#e5eef3; --mute:#8da0ac; --line:#293a45;
+    --accent:#46c0de; --on-accent:#05222b; --field:#0f181e; --stage:#101a20; --grid:#26373f; --warn:#ff8c6e;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e161b; --panel:#16212a; --ink:#e5eef3; --mute:#8da0ac; --line:#293a45;
+  --accent:#46c0de; --on-accent:#05222b; --field:#0f181e; --stage:#101a20; --grid:#26373f; --warn:#ff8c6e;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.4;overflow:hidden}
+*{box-sizing:border-box}
+#app{display:grid;grid-template-columns:minmax(300px,340px) minmax(0,1fr);height:100%}
+#side{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:20px;min-width:0}
+h1{font-size:22px;line-height:1.1;margin:0;font-weight:700;letter-spacing:-.01em}
+h2{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin:0 0 8px;font-weight:600}
+.sub{margin:4px 0 12px;color:var(--mute)}
+.note{margin:8px 0 0;font-size:12.5px;color:var(--mute)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.primary{width:100%;padding:12px 14px;border:0;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:15px}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.chip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--field);min-width:0}
+.chip:hover{border-color:var(--accent)}
+.chip b{font-weight:600;font-size:13px}
+.chip span{font-family:var(--mono);font-size:11px;color:var(--mute)}
+.chip.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+#editName{font-weight:700;font-size:15px;margin-bottom:8px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fields label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.fields input{font:inherit;font-family:var(--mono);font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:5px;background:var(--field);color:var(--ink);width:100%;min-width:0}
+.sw{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.sw button{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);padding:0}
+.sw button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.row button{flex:1 1 40%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--field);font-weight:600;font-size:13px}
+.row button:hover{border-color:var(--accent)}
+.row button.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.row button.danger{color:var(--warn)}
+.help{font-size:12.5px;color:var(--mute);border-top:1px solid var(--line);padding-top:14px}
+.help ul{margin:6px 0 0;padding-left:18px}
+.help li{margin:2px 0}
+#view{position:relative;background:var(--stage);min-width:0;min-height:0}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#hud{position:absolute;left:14px;bottom:14px;right:14px;font-family:var(--mono);font-size:12.5px;color:var(--ink);background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:8px 10px;pointer-events:none;max-width:max-content}
+#toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;max-width:calc(100% - 32px)}
+@media (max-width:760px){
+  body{overflow:auto}
+  #app{grid-template-columns:minmax(0,1fr);grid-template-rows:56vh auto;height:auto;min-height:100%}
+  #view{order:-1}
+  #side{border-right:0;border-top:1px solid var(--line);overflow:visible}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="app">
+  <aside id="side">
+    <header>
+      <h1>Kuhinja AR</h1>
+      <p class="sub">Planer kuhinje i dnevne sobe u stvarnoj veličini za Meta Quest 3S</p>
+      <button id="arBtn" class="primary" disabled>Pokreni AR</button>
+      <p id="arNote" class="note"></p>
+    </header>
+
+    <section>
+      <h2>Dodaj element</h2>
+      <div class="row" style="margin-bottom:8px"><button id="gK" class="on">Kuhinja</button><button id="gD">Dnevna soba</button></div>
+      <div id="cat" class="grid"></div>
+    </section>
+
+    <section>
+      <h2>Izabrani element</h2>
+      <p id="noSel" class="note">Klikni element na sceni da ga izabereš, pa ga prevuci da ga pomeriš.</p>
+      <div id="editBox" hidden>
+        <div id="editName"></div>
+        <div class="fields">
+          <label for="fW">Širina cm<input id="fW" type="number" min="10" max="500" step="1"></label>
+          <label for="fH">Visina cm<input id="fH" type="number" min="1" max="300" step="1"></label>
+          <label for="fD">Dubina cm<input id="fD" type="number" min="2" max="300" step="1"></label>
+          <label for="fE">Od poda cm<input id="fE" type="number" min="0" max="250" step="1"></label>
+          <label for="fR">Rotacija °<input id="fR" type="number" min="-360" max="360" step="15"></label>
+          <label for="fN" id="lN" hidden><span id="lNt">Polica</span><input id="fN" type="number" min="1" max="12" step="1"></label>
+        </div>
+        <div class="sw" id="sw"></div>
+        <div class="row">
+          <button id="bDup">Kopiraj</button>
+          <button id="bDel" class="danger">Obriši</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Alati</h2>
+      <div class="row">
+        <button id="bMeasure">Merenje</button>
+        <button id="bSnap" class="on">Prianjanje</button>
+        <button id="bSave">Sačuvaj</button>
+        <button id="bLoad">Učitaj</button>
+        <button id="bSample">Primer kuhinje</button>
+        <button id="bSampleL">Primer dnevne sobe</button>
+        <button id="bClear" class="danger">Obriši sve</button>
+      </div>
+    </section>
+
+    <section class="help">
+      <h2>Kontrole u AR</h2>
+      <ul>
+        <li>Meni je na levom kontroleru; desnim ciljaš i okidaš.</li>
+        <li>Okidač na elementu: uhvati i prevuci po podu.</li>
+        <li>Desni džojstik: levo/desno rotira, gore/dole podiže.</li>
+        <li>Grip na levom kontroleru sakriva ili vraća meni.</li>
+      </ul>
+    </section>
+  </aside>
+
+  <main id="view">
+    <canvas id="c"></canvas>
+    <div id="hud"></div>
+    <div id="toast" hidden></div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+/* ---------- podaci ---------- */
+const M=0.01, DEG=Math.PI/180;
+const PALETTE=[
+  {n:'Bela',c:'#f0f1ee'},{n:'Grafit',c:'#3a3f44'},{n:'Hrast',c:'#b88a5a'},
+  {n:'Žalfija',c:'#8fa58f'},{n:'Petrol',c:'#1f5f73'},{n:'Pesak',c:'#d6c7a8'},
+  {n:'Siva',c:'#8d9298'},{n:'Bordo',c:'#7a2e3a'}
+];
+const CAT=[
+  {id:'base',  name:'Donji element', w:60, h:82, d:60, e:0},
+  {id:'drawers',name:'Fioke',        w:60, h:82, d:60, e:0},
+  {id:'sink',  name:'Sudopera',      w:80, h:85, d:60, e:0},
+  {id:'hob',   name:'Šporet',        w:60, h:85, d:60, e:0},
+  {id:'dish',  name:'Mašina za sudove',w:60,h:82,d:60, e:0},
+  {id:'wall',  name:'Gornji element',w:60, h:70, d:35, e:140},
+  {id:'hood',  name:'Napa',          w:60, h:55, d:50, e:150},
+  {id:'tall',  name:'Visoki element',w:60, h:210,d:60, e:0},
+  {id:'fridge',name:'Frižider',      w:60, h:185,d:65, e:0},
+  {id:'island',name:'Ostrvo',        w:140,h:90, d:70, e:0},
+  {id:'counter',name:'Radna ploča',  w:120,h:4,  d:62, e:86},
+  {id:'table', name:'Sto',           w:120,h:75, d:70, e:0},
+  {id:'chair', name:'Stolica',       w:45, h:90, d:45, e:0}
+];
+CAT.forEach(function(c){ c.g='k'; });
+CAT.push(
+  {id:'shelf',   name:'Regal (police)',w:120,h:200,d:30, e:0,  n:5, g:'d', c:'#b88a5a'},
+  {id:'wshelf',  name:'Zidna polica',  w:100,h:3,  d:25, e:130,      g:'d', c:'#b88a5a'},
+  {id:'sideboard',name:'Komoda',       w:160,h:80, d:40, e:0,        g:'d', c:'#b88a5a'},
+  {id:'tvunit',  name:'TV komoda',     w:180,h:45, d:40, e:0,        g:'d', c:'#3a3f44'},
+  {id:'tv',      name:'Televizor',     w:120,h:70, d:20, e:45,       g:'d', c:'#1b1d20'},
+  {id:'sofa',    name:'Sofa',          w:220,h:85, d:95, e:0,  n:3, g:'d', c:'#8d9298'},
+  {id:'armchair',name:'Fotelja',       w:85, h:85, d:90, e:0,        g:'d', c:'#1f5f73'},
+  {id:'coffee',  name:'Klub sto',      w:100,h:40, d:60, e:0,        g:'d', c:'#b88a5a'},
+  {id:'wardrobe',name:'Ormar',         w:200,h:230,d:60, e:0,        g:'d'},
+  {id:'desk',    name:'Radni sto',     w:140,h:75, d:70, e:0,        g:'d', c:'#b88a5a'},
+  {id:'rug',     name:'Tepih',         w:200,h:1.5,d:300,e:0,        g:'d', c:'#d6c7a8'},
+  {id:'lamp',    name:'Podna lampa',   w:35, h:160,d:35, e:0,        g:'d'},
+  {id:'plant',   name:'Biljka',        w:40, h:110,d:40, e:0,        g:'d', c:'#d6c7a8'}
+);
+const HAS_N={shelf:{label:'Polica',min:1,max:12},sofa:{label:'Sedišta',min:1,max:5}};
+const byId=Object.fromEntries(CAT.map(c=>[c.id,c]));
+const LOWER=['base','drawers','sink','dish','hob','island'];
+
+let items=[], sel=null, nextId=1, snapOn=true, measureOn=false;
+
+/* ---------- materijali ---------- */
+const matCache={};
+function mat(color,rough,metal){
+  const k=color+'|'+(rough??.6)+'|'+(metal??.05);
+  return matCache[k]||(matCache[k]=new THREE.MeshStandardMaterial({color:color,roughness:rough??.6,metalness:metal??.05}));
+}
+const STEEL=()=>mat('#b9c0c6',.35,.85), BODY=()=>mat('#e6e3dc',.8,0), STONE=()=>mat('#5a6066',.5,.1), DARK=()=>mat('#1b1d20',.4,.2);
+
+/* ---------- gradnja modela ---------- */
+function buildMesh(it){
+  const g=new THREE.Group();
+  const W=it.w*M, H=it.h*M, D=it.d*M, k=it.kind;
+  const front=mat(it.color,.55,.05);
+  function add(w,h,d,x,y,z,m){
+    const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);
+    b.position.set(x,y+h/2,z); b.castShadow=true; b.receiveShadow=true; g.add(b); return b;
+  }
+  function cyl(r,h,x,y,z,m){
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,20),m);
+    c.position.set(x,y+h/2,z); c.castShadow=true; g.add(c); return c;
+  }
+  const fz=D/2-0.009; // z fronta
+  function doors(y0,h,n,handleTop){
+    const dw=W/n;
+    for(let i=0;i<n;i++){
+      const cx=-W/2+dw*(i+.5);
+      add(dw-.004,h-.004,.018,cx,y0+.002,fz,front);
+      const hx=n===1?cx+dw/2-.035:(i===0?cx+dw/2-.03:cx-dw/2+.03);
+      const hy=handleTop?y0+h-.20:y0+.06;
+      add(.012,.15,.016,hx,hy,fz+.015,STEEL());
+    }
+  }
+  if(LOWER.indexOf(k)>=0){
+    const plinth=.10, top=.04, bh=H-plinth-top;
+    add(W-.02,plinth,D-.08,0,0,-.03,DARK());
+    add(W,bh,D-.02,0,plinth,-.01,BODY());
+    if(k==='drawers'){
+      const hs=[bh*.24,bh*.33,bh*.43]; let y=plinth;
+      hs.forEach(function(h){
+        add(W-.004,h-.004,.018,0,y+.002,fz,front);
+        add(W*.5,.012,.016,0,y+h-.045,fz+.015,STEEL());
+        y+=h;
+      });
+    } else if(k==='dish'){
+      add(W-.004,bh-.004,.018,0,plinth+.002,fz,mat('#a9b1b8',.35,.8));
+      add(W*.7,.014,.02,0,plinth+bh-.06,fz+.02,STEEL());
+    } else if(k==='hob'){
+      add(W-.004,bh-.004,.018,0,plinth+.002,fz,front);
+      add(W-.16,bh*.5,.006,0,plinth+bh*.12,fz+.012,DARK());
+      add(W*.8,.014,.02,0,plinth+bh-.06,fz+.02,STEEL());
+    } else if(k==='island'){
+      doors(plinth,bh,Math.max(1,Math.round(W/.6)),true);
+      add(W-.004,bh-.004,.018,0,plinth+.002,-D/2+.009,front);
+    } else {
+      doors(plinth,bh,W>.7?2:1,true);
+    }
+    // radna ploca
+    add(W,top,D+.02,0,H-top,.01,STONE());
+    if(k==='sink'){
+      add(W*.5,.004,D*.55,-W*.08,H,0,mat('#8d959b',.3,.9));
+      add(W*.4,.003,D*.42,-W*.08,H+.004,0,DARK());
+      cyl(.012,.22,W*.22,H,-D*.28,STEEL());
+      add(.014,.014,.14,W*.22,H+.2,-D*.21,STEEL());
+    }
+    if(k==='hob'){
+      [[-.14,-.12,.09],[.14,-.12,.07],[-.14,.12,.07],[.14,.12,.09]].forEach(function(p){
+        cyl(p[2]*(W/.6>1?1:W/.6),.008,p[0]*(W/.6),H,p[1]*(D/.6),DARK());
+      });
+    }
+  } else if(k==='wall'){
+    add(W,H,D-.02,0,0,-.01,BODY());
+    const n=W>.7?2:1, dw=W/n;
+    for(let i=0;i<n;i++){
+      const cx=-W/2+dw*(i+.5);
+      add(dw-.004,H-.004,.018,cx,.002,fz,front);
+      const hx=n===1?cx+dw/2-.035:(i===0?cx+dw/2-.03:cx-dw/2+.03);
+      add(.012,.15,.016,hx,.05,fz+.015,STEEL());
+    }
+  } else if(k==='hood'){
+    add(W,.08,D,0,0,0,STEEL());
+    add(W*.5,H-.08,D*.5,0,.08,-D*.22,mat('#9aa2a9',.4,.8));
+  } else if(k==='tall'){
+    add(W,H,D-.02,0,0,-.01,BODY());
+    const lo=H*.52;
+    add(W-.004,lo-.004,.018,0,.002,fz,front);
+    add(W-.004,H-lo-.004,.018,0,lo+.002,fz,front);
+    add(.012,.18,.016,W/2-.035,lo+.12,fz+.015,STEEL());
+    add(.012,.18,.016,W/2-.035,lo-.30,fz+.015,STEEL());
+  } else if(k==='fridge'){
+    const steel=mat('#c4cacf',.3,.85);
+    add(W,H,D,0,0,0,steel);
+    add(W-.01,.004,.004,0,H*.34,D/2+.001,DARK());
+    add(.018,.5,.03,W/2-.05,H*.40,D/2+.025,STEEL());
+    add(.018,.28,.03,W/2-.05,H*.18,D/2+.025,STEEL());
+  } else if(k==='table'||k==='coffee'||k==='desk'){
+    add(W,.04,D,0,H-.04,0,front);
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){
+      add(.06,H-.04,.06,s[0]*(W/2-.07),0,s[1]*(D/2-.07),front);
+    });
+  } else if(k==='chair'){
+    add(W,.04,D,0,.45,0,front);
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){
+      add(.04,.45,.04,s[0]*(W/2-.03),0,s[1]*(D/2-.03),front);
+    });
+    add(W,H-.49,.04,0,.49,-D/2+.02,front);
+  } else if(k==='counter'){
+    add(W,H,D,0,0,0,STONE());
+  } else if(k==='shelf'){
+    const t=.025, n=Math.max(1,Math.round(it.n||4));
+    add(t,H,D,-W/2+t/2,0,0,front); add(t,H,D,W/2-t/2,0,0,front);
+    const iw=W-2*t;
+    for(let i=0;i<=n;i++){ add(iw,t,D,0,i*(H-t)/n,0,front); }
+    const nd=W>1?Math.floor(W/.9):0;
+    for(let i=1;i<=nd;i++){ add(t,H-2*t,D,-iw/2+iw*i/(nd+1),t,0,front); }
+    add(W-.004,H-.004,.006,0,.002,-D/2+.003,front);
+  } else if(k==='wshelf'){
+    add(W,H,D,0,0,0,front);
+  } else if(k==='sideboard'||k==='tvunit'){
+    const leg=k==='tvunit'?.08:.14;
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){ add(.04,leg,.04,s[0]*(W/2-.05),0,s[1]*(D/2-.05),DARK()); });
+    add(W,H-leg,D-.02,0,leg,-.01,front);
+    const n=Math.max(2,Math.round(W/.5)), dw=W/n;
+    for(let i=0;i<n;i++){
+      const cx=-W/2+dw*(i+.5);
+      add(dw-.008,H-leg-.04,.016,cx,leg+.02,D/2-.008,front);
+      add(.1,.012,.014,cx,H-.07,D/2+.012,STEEL());
+    }
+  } else if(k==='tv'){
+    add(W*.3,.015,Math.min(D,.22),0,0,0,DARK());
+    add(W,H-.015,.05,0,.015,0,DARK());
+    add(W-.04,H-.055,.004,0,.035,.026,mat('#0b1a22',.15,.3));
+  } else if(k==='sofa'||k==='armchair'){
+    const seats=k==='armchair'?1:Math.max(1,Math.round(it.n||3));
+    const arm=.16, cush=mat('#'+new THREE.Color(it.color).offsetHSL(0,0,.05).getHexString(),.95,0);
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){ add(.05,.08,.05,s[0]*(W/2-.08),0,s[1]*(D/2-.08),DARK()); });
+    add(W,.22,D,0,.08,0,front);
+    const cw=(W-2*arm)/seats;
+    for(let i=0;i<seats;i++){
+      const cx=-W/2+arm+cw*(i+.5);
+      add(cw-.01,.14,D-.24,cx,.30,.06,cush);
+      add(cw-.01,Math.max(.2,H-.50),.14,cx,.44,-D/2+.24,cush);
+    }
+    add(W,H-.30,.16,0,.30,-D/2+.08,front);
+    add(arm,.28,D,-W/2+arm/2,.30,0,front); add(arm,.28,D,W/2-arm/2,.30,0,front);
+  } else if(k==='wardrobe'){
+    add(W-.02,.06,D-.06,0,0,-.02,DARK());
+    add(W,H-.06,D-.02,0,.06,-.01,BODY());
+    const n=Math.max(2,Math.round(W/.5)), dw=W/n;
+    for(let i=0;i<n;i++){
+      const cx=-W/2+dw*(i+.5);
+      add(dw-.006,H-.07,.018,cx,.065,fz,front);
+      add(.012,.3,.016,i%2===0?cx+dw/2-.04:cx-dw/2+.04,H*.45,fz+.015,STEEL());
+    }
+  } else if(k==='rug'){
+    add(W,H,D,0,0,0,mat(it.color,1,0));
+  } else if(k==='lamp'){
+    cyl(.13,.02,0,0,0,DARK());
+    cyl(.01,H-.3,0,.02,0,DARK());
+    const sh=new THREE.Mesh(new THREE.CylinderGeometry(.1,.17,.28,24,1,true),
+      new THREE.MeshStandardMaterial({color:'#f3ead6',side:THREE.DoubleSide,emissive:'#f3d9a0',emissiveIntensity:.35,roughness:.9}));
+    sh.position.y=H-.14; g.add(sh);
+  } else if(k==='plant'){
+    const pot=new THREE.Mesh(new THREE.CylinderGeometry(W*.3,W*.22,.26,18),mat(it.color,.7,0));
+    pot.position.y=.13; pot.castShadow=true; g.add(pot);
+    cyl(.012,H*.5,0,.26,0,mat('#5b4a35',.9,0));
+    const leaf=mat('#4f7a4a',.9,0);
+    [[0,.55,.42],[.1,.78,.32],[-.1,.88,.26]].forEach(function(p){
+      const s=new THREE.Mesh(new THREE.IcosahedronGeometry(W*p[2],1),leaf);
+      s.position.set(p[0]*W*.5,Math.max(.3,H*p[1]),0); s.castShadow=true; g.add(s);
+    });
+  }
+  // okvir izbora
+  const edges=new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(W+.01,H+.01,D+.01)),
+    new THREE.LineBasicMaterial({color:0x2fb4d6}));
+  edges.position.y=H/2; edges.visible=false; edges.name='outline';
+  g.add(edges);
+  g.userData.item=it;
+  g.position.set(it.x*M,it.e*M,it.z*M);
+  g.rotation.y=it.rot*DEG;
+  return g;
+}
+function disposeGroup(g){
+  g.traverse(function(o){ if(o.geometry) o.geometry.dispose(); if(o.name==='outline'&&o.material) o.material.dispose(); });
+}
+
+/* ---------- scena ---------- */
+let xrTab=0, panelDirty=true, xrMsg='', xrMsgT=0;
+const $=function(id){return document.getElementById(id);};
+const view=$('view'), canvas=$('c');
+const renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.xr.enabled=true; renderer.xr.setReferenceSpaceType('local-floor');
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(50,1,0.05,80);
+scene.add(new THREE.HemisphereLight(0xffffff,0x8a929a,0.95));
+const sun=new THREE.DirectionalLight(0xffffff,0.75);
+sun.position.set(2.5,4.5,2); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.bias=-0.0005;
+const sc=sun.shadow.camera; sc.left=-6; sc.right=6; sc.top=6; sc.bottom=-6; sc.near=0.5; sc.far=14;
+sun.target.position.set(0,0,-2); scene.add(sun); scene.add(sun.target);
+const shadowFloor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.ShadowMaterial({opacity:0.28}));
+shadowFloor.rotation.x=-Math.PI/2; shadowFloor.receiveShadow=true; scene.add(shadowFloor);
+const grid=new THREE.GridHelper(12,120,0x7d909b,0x7d909b);
+grid.material.transparent=true; grid.material.opacity=0.4; scene.add(grid);
+const floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const root=new THREE.Group(); scene.add(root);
+
+function applyStage(){
+  if(renderer.xr.isPresenting) return;
+  const c=getComputedStyle(document.documentElement).getPropertyValue('--stage').trim();
+  scene.background=new THREE.Color(c||'#dde4e8');
+}
+applyStage();
+if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyStage);
+new MutationObserver(applyStage).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+const orb={t:0.55,p:1.0,r:6.2,target:new THREE.Vector3(0,0.5,-1.3)};
+function updateCam(){
+  const s=Math.sin(orb.p);
+  camera.position.set(orb.target.x+orb.r*s*Math.sin(orb.t),orb.target.y+orb.r*Math.cos(orb.p),orb.target.z+orb.r*s*Math.cos(orb.t));
+  camera.lookAt(orb.target);
+}
+function resize(){
+  if(renderer.xr.isPresenting) return;
+  const w=view.clientWidth, h=view.clientHeight;
+  if(!w||!h) return;
+  renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(view); resize();
+
+/* ---------- pomocni crtezi ---------- */
+function rr(x,px,py,w,h,r){
+  x.beginPath(); x.moveTo(px+r,py); x.lineTo(px+w-r,py); x.quadraticCurveTo(px+w,py,px+w,py+r);
+  x.lineTo(px+w,py+h-r); x.quadraticCurveTo(px+w,py+h,px+w-r,py+h); x.lineTo(px+r,py+h);
+  x.quadraticCurveTo(px,py+h,px,py+h-r); x.lineTo(px,py+r); x.quadraticCurveTo(px,py,px+r,py); x.closePath();
+}
+function makeLabel(w,h,scale){
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const tex=new THREE.CanvasTexture(c);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,transparent:true}));
+  sp.scale.set(scale,scale*h/w,1); sp.renderOrder=10; sp.userData={c:c,tex:tex};
+  return sp;
+}
+function setLabel(sp,text){
+  const c=sp.userData.c, x=c.getContext('2d');
+  x.clearRect(0,0,c.width,c.height);
+  x.fillStyle='rgba(8,24,32,0.9)'; rr(x,2,2,c.width-4,c.height-4,12); x.fill();
+  x.fillStyle='#e8f6fa'; x.font='600 '+Math.round(c.height*0.46)+'px "JetBrains Mono",ui-monospace,monospace';
+  x.textAlign='center'; x.textBaseline='middle'; x.fillText(text,c.width/2,c.height/2+2);
+  sp.userData.tex.needsUpdate=true;
+}
+const dimSprite=makeLabel(512,96,0.42); dimSprite.visible=false; scene.add(dimSprite);
+
+/* ---------- elementi ---------- */
+function addItem(kind,o){
+  const c=byId[kind];
+  const it=Object.assign({id:nextId++,kind:kind,name:c.name,n:c.n,w:c.w,h:c.h,d:c.d,e:c.e,x:0,z:0,rot:0,color:c.c||PALETTE[0].c},o||{});
+  items.push(it); it.mesh=buildMesh(it); root.add(it.mesh); return it;
+}
+function rebuild(it){
+  root.remove(it.mesh); disposeGroup(it.mesh);
+  it.mesh=buildMesh(it); root.add(it.mesh);
+  if(it===sel) it.mesh.getObjectByName('outline').visible=true;
+}
+function syncPose(it){ it.mesh.position.set(it.x*M,it.e*M,it.z*M); it.mesh.rotation.y=it.rot*DEG; }
+function removeItem(it){
+  if(sel===it) select(null);
+  root.remove(it.mesh); disposeGroup(it.mesh); items.splice(items.indexOf(it),1);
+}
+function clearAll(){ select(null); items.slice().forEach(removeItem); clearMeasure(); refresh(); }
+function select(it){
+  if(sel&&sel.mesh){ const o=sel.mesh.getObjectByName('outline'); if(o) o.visible=false; }
+  sel=it;
+  if(it) it.mesh.getObjectByName('outline').visible=true;
+  refresh();
+}
+function setProp(k,v){
+  if(!sel) return;
+  const lim={w:[10,500],h:[1,300],d:[2,300],e:[0,250],rot:[-360,360],n:[1,12]}[k];
+  v=Math.min(lim[1],Math.max(lim[0],v));
+  if(k==='rot') v=((v%360)+360)%360;
+  sel[k]=v;
+  if(k==='rot'||k==='e') syncPose(sel); else { rebuild(sel); syncPose(sel); }
+  refresh();
+}
+
+/* ---------- biranje i prianjanje ---------- */
+function pickItem(rc){
+  const hits=rc.intersectObjects(root.children,true);
+  for(let i=0;i<hits.length;i++){
+    let o=hits[i].object;
+    while(o&&!o.userData.item) o=o.parent;
+    if(o) return o.userData.item;
+  }
+  return null;
+}
+function pickPoint(rc){
+  const hits=rc.intersectObjects(root.children,true);
+  for(let i=0;i<hits.length;i++){ if(hits[i].object.type!=='LineSegments') return hits[i].point.clone(); }
+  const p=new THREE.Vector3();
+  return rc.ray.intersectPlane(floorPlane,p)?p:null;
+}
+function isRight(it){ return Math.abs(it.rot%90)<0.01; }
+function halfExt(it){ const r=((Math.round(it.rot)%180)+180)%180; return r===90?[it.d/2,it.w/2]:[it.w/2,it.d/2]; }
+function snapPos(it,x,z){
+  if(!snapOn) return [x,z];
+  let sx=Math.round(x/5)*5, sz=Math.round(z/5)*5;
+  if(isRight(it)){
+    const he=halfExt(it), hw=he[0], hd=he[1];
+    let bx=6, bz=6, rx=sx, rz=sz;
+    items.forEach(function(o){
+      if(o===it||!isRight(o)) return;
+      const oe=halfExt(o), ow=oe[0], od=oe[1];
+      if(Math.abs(z-o.z)<od+hd+10){
+        [o.x-ow-hw,o.x+ow+hw,o.x-ow+hw,o.x+ow-hw].forEach(function(c){ const d=Math.abs(x-c); if(d<bx){bx=d;rx=c;} });
+      }
+      if(Math.abs(x-o.x)<ow+hw+10){
+        [o.z-od-hd,o.z+od+hd,o.z-od+hd,o.z+od-hd].forEach(function(c){ const d=Math.abs(z-c); if(d<bz){bz=d;rz=c;} });
+      }
+    });
+    sx=rx; sz=rz;
+  }
+  return [sx,sz];
+}
+let dragOff=[0,0];
+function beginDrag(rc){
+  const p=new THREE.Vector3();
+  if(sel&&rc.ray.intersectPlane(floorPlane,p)) dragOff=[sel.x-p.x*100,sel.z-p.z*100]; else dragOff=[0,0];
+}
+function dragTo(rc){
+  if(!sel) return;
+  const p=new THREE.Vector3();
+  if(!rc.ray.intersectPlane(floorPlane,p)) return;
+  const s=snapPos(sel,p.x*100+dragOff[0],p.z*100+dragOff[1]);
+  sel.x=s[0]; sel.z=s[1]; syncPose(sel); refresh(true);
+}
+function spawnPoint(){
+  if(renderer.xr.isPresenting){
+    const xc=renderer.xr.getCamera(camera);
+    const pos=new THREE.Vector3().setFromMatrixPosition(xc.matrixWorld);
+    const f=new THREE.Vector3(0,0,-1).applyQuaternion(new THREE.Quaternion().setFromRotationMatrix(xc.matrixWorld));
+    f.y=0; if(f.lengthSq()<1e-4) f.set(0,0,-1); f.normalize();
+    xrCamYaw=Math.round(Math.atan2(-f.x,-f.z)/DEG/15)*15;
+    return [(pos.x+f.x*1.0)*100,(pos.z+f.z*1.0)*100];
+  }
+  xrCamYaw=null;
+  return [orb.target.x*100,orb.target.z*100];
+}
+function spawn(kind){
+  const p=spawnPoint();
+  const it=addItem(kind,{x:Math.round(p[0]/5)*5,z:Math.round(p[1]/5)*5});
+  if(renderer.xr.isPresenting&&xrCamYaw!==null) it.rot=xrCamYaw;
+  syncPose(it); select(it); xrTab=1; panelDirty=true; return it;
+}
+let xrCamYaw=null;
+
+/* ---------- merenje ---------- */
+const measureG=new THREE.Group(); scene.add(measureG);
+let mPts=[], mText='';
+function clearMeasure(){
+  while(measureG.children.length){
+    const o=measureG.children[0]; measureG.remove(o);
+    if(o.geometry) o.geometry.dispose();
+    if(o.material){ if(o.material.map) o.material.map.dispose(); o.material.dispose(); }
+  }
+  mPts=[]; mText='';
+}
+function addMeasurePoint(p){
+  if(!p) return;
+  if(mPts.length>=2) clearMeasure();
+  mPts.push(p);
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(0.012,14,10),new THREE.MeshBasicMaterial({color:0x2fb4d6,depthTest:false}));
+  dot.position.copy(p); dot.renderOrder=9; measureG.add(dot);
+  if(mPts.length===2){
+    const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints(mPts),new THREE.LineBasicMaterial({color:0x2fb4d6,depthTest:false}));
+    ln.renderOrder=9; measureG.add(ln);
+    const cm=Math.round(mPts[0].distanceTo(mPts[1])*1000)/10;
+    mText=cm+' cm';
+    const sp=makeLabel(320,96,0.3); setLabel(sp,mText);
+    sp.position.copy(mPts[0]).add(mPts[1]).multiplyScalar(0.5); sp.position.y+=0.08;
+    measureG.add(sp);
+  } else mText='Izaberi drugu tačku';
+  refresh(true);
+}
+
+/* ---------- akcije ---------- */
+let tT=0;
+function toast(m){
+  const t=$('toast'); t.textContent=m; t.hidden=false;
+  clearTimeout(tT); tT=setTimeout(function(){t.hidden=true;},2600);
+  xrMsg=m; xrMsgT=performance.now(); panelDirty=true;
+}
+const KEY='kuhinja-ar-v1';
+function strip(it){ return {kind:it.kind,name:it.name,n:it.n,w:it.w,h:it.h,d:it.d,e:it.e,x:it.x,z:it.z,rot:it.rot,color:it.color}; }
+function loadData(arr){
+  clearAll();
+  const n=function(v,d){ return isFinite(+v)?+v:d; };
+  arr.forEach(function(o){
+    const c=byId[o.kind]; if(!c) return;
+    const it=addItem(o.kind,{name:o.name||c.name,n:n(o.n,c.n),w:n(o.w,c.w),h:n(o.h,c.h),d:n(o.d,c.d),e:n(o.e,c.e),x:n(o.x,0),z:n(o.z,0),rot:n(o.rot,0),color:typeof o.color==='string'?o.color:PALETTE[0].c});
+    rebuild(it); syncPose(it);
+  });
+  refresh();
+}
+const act={
+  resize:function(k,d){ if(sel) setProp(k,sel[k]+d); },
+  rotate:function(d){ if(sel) setProp('rot',sel.rot+d); },
+  elev:function(d){ if(sel) setProp('e',sel.e+d); },
+  color:function(c){ if(sel){ sel.color=c; rebuild(sel); refresh(); } },
+  dup:function(){
+    if(!sel) return; const s=sel, a=s.rot*DEG;
+    const it=addItem(s.kind,{name:s.name,n:s.n,w:s.w,h:s.h,d:s.d,e:s.e,x:s.x+Math.cos(a)*s.w,z:s.z-Math.sin(a)*s.w,rot:s.rot,color:s.color});
+    syncPose(it); select(it);
+  },
+  del:function(){ if(sel){ removeItem(sel); refresh(); } },
+  measure:function(){
+    measureOn=!measureOn; clearMeasure(); $('bMeasure').classList.toggle('on',measureOn);
+    mText=measureOn?'Izaberi dve tačke':''; toast(measureOn?'Merenje: izaberi dve tačke':'Merenje isključeno'); refresh(true);
+  },
+  snap:function(){ snapOn=!snapOn; $('bSnap').classList.toggle('on',snapOn); toast(snapOn?'Prianjanje uključeno':'Prianjanje isključeno'); },
+  save:function(){
+    try{ localStorage.setItem(KEY,JSON.stringify(items.map(strip))); toast('Sačuvano ('+items.length+' elemenata)'); }
+    catch(e){ toast('Čuvanje nije dostupno u ovom pregledaču'); }
+  },
+  load:function(){
+    try{
+      const raw=localStorage.getItem(KEY);
+      if(!raw){ toast('Nema sačuvanog plana'); return; }
+      loadData(JSON.parse(raw)); toast('Plan učitan');
+    }catch(e){ toast('Učitavanje nije uspelo'); }
+  },
+  sample:function(){ sampleKitchen(); toast('Primer kuhinje učitan'); },
+  sampleLiving:function(){ sampleLiving(); toast('Primer dnevne sobe učitan'); },
+  clear:function(){ clearAll(); toast('Sve obrisano'); }
+};
+function sampleKitchen(){
+  const G='#3a3f44', B='#f0f1ee', H='#b88a5a', P='#1f5f73';
+  const L=[
+    ['fridge',-150,-217.5,0,{}],
+    ['drawers',-90,-220,0,{color:G}],
+    ['sink',-20,-220,0,{w:80,color:G}],
+    ['dish',50,-220,0,{color:G}],
+    ['hob',110,-220,0,{color:G}],
+    ['base',170,-220,0,{color:G}],
+    ['wall',-90,-232.5,0,{color:B}],
+    ['wall',-30,-232.5,0,{color:B}],
+    ['wall',30,-232.5,0,{color:B}],
+    ['hood',110,-225,0,{}],
+    ['wall',170,-232.5,0,{color:B}],
+    ['island',20,-40,0,{color:P}],
+    ['chair',-10,25,180,{color:H}],
+    ['chair',50,25,180,{color:H}]
+  ];
+  clearAll();
+  L.forEach(function(r){
+    const it=addItem(r[0],Object.assign({x:r[1],z:r[2],rot:r[3]},r[4]));
+    rebuild(it); syncPose(it);
+  });
+  refresh();
+}
+
+function sampleLiving(){
+  const W='#f0f1ee', G='#3a3f44', H='#b88a5a', P='#1f5f73', S='#8d9298', R='#d6c7a8';
+  const L=[
+    ['rug',0,-60,0,{color:R,w:260,d:300}],
+    ['tvunit',0,-230,0,{color:G}],
+    ['tv',0,-238,0,{}],
+    ['shelf',-170,-235,0,{color:H,w:100,h:200,n:5}],
+    ['shelf',170,-235,0,{color:H,w:100,h:200,n:5}],
+    ['wshelf',-60,-237.5,0,{color:H,e:150,w:80}],
+    ['wshelf',60,-237.5,0,{color:H,e:150,w:80}],
+    ['sofa',0,10,180,{color:S}],
+    ['armchair',-170,-70,90,{color:P}],
+    ['coffee',0,-90,0,{color:H}],
+    ['lamp',-170,-190,0,{}],
+    ['plant',200,-140,0,{}]
+  ];
+  clearAll();
+  L.forEach(function(r){
+    const it=addItem(r[0],Object.assign({x:r[1],z:r[2],rot:r[3]},r[4]));
+    rebuild(it); syncPose(it);
+  });
+  refresh();
+}
+
+/* ---------- HTML meni ---------- */
+const catEl=$('cat');
+let catGroup='k';
+function renderCat(){
+  catEl.textContent='';
+  CAT.filter(function(c){ return c.g===catGroup; }).forEach(function(c){
+    const b=document.createElement('button'); b.className='chip';
+    const t=document.createElement('b'), s=document.createElement('span');
+    t.textContent=c.name; s.textContent=c.w+'×'+c.h+'×'+c.d+' cm'; b.appendChild(t); b.appendChild(s);
+    b.addEventListener('click',function(){ spawn(c.id); });
+    catEl.appendChild(b);
+  });
+  $('gK').classList.toggle('on',catGroup==='k'); $('gD').classList.toggle('on',catGroup==='d');
+}
+$('gK').addEventListener('click',function(){ catGroup='k'; renderCat(); });
+$('gD').addEventListener('click',function(){ catGroup='d'; renderCat(); });
+renderCat();
+const swEl=$('sw');
+PALETTE.forEach(function(p){
+  const b=document.createElement('button'); b.style.background=p.c; b.title=p.n; b.setAttribute('aria-label',p.n); b.dataset.c=p.c;
+  b.addEventListener('click',function(){ act.color(p.c); });
+  swEl.appendChild(b);
+});
+const F={w:$('fW'),h:$('fH'),d:$('fD'),e:$('fE'),rot:$('fR'),n:$('fN')};
+Object.keys(F).forEach(function(k){
+  F[k].addEventListener('change',function(){
+    const v=parseFloat(F[k].value);
+    if(isNaN(v)){ refresh(); return; }
+    setProp(k,v);
+  });
+});
+$('bDup').addEventListener('click',act.dup);
+$('bDel').addEventListener('click',act.del);
+$('bMeasure').addEventListener('click',act.measure);
+$('bSnap').addEventListener('click',act.snap);
+$('bSave').addEventListener('click',act.save);
+$('bLoad').addEventListener('click',act.load);
+$('bSample').addEventListener('click',act.sample);
+$('bSampleL').addEventListener('click',act.sampleLiving);
+$('bClear').addEventListener('click',act.clear);
+
+function refresh(light){
+  const has=!!sel;
+  $('noSel').hidden=has; $('editBox').hidden=!has;
+  if(has){
+    $('editName').textContent=sel.name;
+    const f=function(v){ return Math.round(v*10)/10; };
+    ['w','h','d','e','rot'].forEach(function(k){ if(document.activeElement!==F[k]) F[k].value=f(sel[k]); });
+    const hn=HAS_N[sel.kind]; $('lN').hidden=!hn;
+    if(hn){ $('lNt').textContent=hn.label; F.n.min=hn.min; F.n.max=hn.max; if(document.activeElement!==F.n) F.n.value=Math.round(sel.n); }
+    Array.prototype.forEach.call(swEl.children,function(b){ b.classList.toggle('on',b.dataset.c===sel.color); });
+    dimSprite.visible=true;
+    setLabel(dimSprite,sel.w+' × '+sel.h+' × '+sel.d+' cm');
+    dimSprite.position.set(sel.x*M,sel.e*M+sel.h*M+0.16,sel.z*M);
+  } else dimSprite.visible=false;
+  let h;
+  if(mText&&measureOn) h='Merenje: '+mText;
+  else if(has) h=sel.name+'  ·  '+sel.w+'×'+sel.h+'×'+sel.d+' cm  ·  od poda '+sel.e+' cm  ·  '+Math.round(sel.rot)+'°';
+  else h=items.length+' elemenata na sceni';
+  $('hud').textContent=h;
+  panelDirty=true;
+}
+
+/* ---------- desktop kontrole ---------- */
+const rc=new THREE.Raycaster();
+const ndc=new THREE.Vector2();
+function rayFromEvent(e){
+  const r=canvas.getBoundingClientRect();
+  ndc.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);
+  rc.setFromCamera(ndc,camera);
+}
+let mode=null, last=[0,0], moved=0;
+canvas.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+canvas.addEventListener('pointerdown',function(e){
+  if(renderer.xr.isPresenting) return;
+  canvas.setPointerCapture(e.pointerId); rayFromEvent(e); last=[e.clientX,e.clientY]; moved=0;
+  const hit=(!measureOn&&e.button===0)?pickItem(rc):null;
+  if(hit){ select(hit); beginDrag(rc); mode='drag'; }
+  else mode=(e.button===2||e.shiftKey)?'pan':'orbit';
+});
+canvas.addEventListener('pointermove',function(e){
+  if(!mode) return;
+  const dx=e.clientX-last[0], dy=e.clientY-last[1]; last=[e.clientX,e.clientY]; moved+=Math.abs(dx)+Math.abs(dy);
+  if(mode==='drag'){ rayFromEvent(e); dragTo(rc); }
+  else if(mode==='orbit'){ orb.t-=dx*0.006; orb.p=Math.min(1.5,Math.max(0.12,orb.p-dy*0.006)); }
+  else {
+    const s=orb.r*0.0016, ct=Math.cos(orb.t), st=Math.sin(orb.t);
+    orb.target.x+=-dx*ct*s+dy*(-st)*s; orb.target.z+=dx*st*s+dy*(-ct)*s;
+  }
+});
+canvas.addEventListener('pointerup',function(e){
+  if(mode==='orbit'&&moved<4){
+    rayFromEvent(e);
+    if(measureOn) addMeasurePoint(pickPoint(rc)); else select(null);
+  }
+  mode=null;
+});
+canvas.addEventListener('wheel',function(e){
+  e.preventDefault(); orb.r=Math.min(20,Math.max(1.5,orb.r*(1+Math.sign(e.deltaY)*0.1)));
+},{passive:false});
+window.addEventListener('keydown',function(e){
+  if(/INPUT|TEXTAREA/.test((e.target&&e.target.tagName)||'')) return;
+  if(e.key==='Delete'||e.key==='Backspace'){ act.del(); }
+  else if(e.key==='r'||e.key==='R'){ act.rotate(e.shiftKey?-15:15); }
+  else if(e.key==='d'||e.key==='D'){ act.dup(); }
+  else if(e.key==='Escape'){ select(null); }
+});
+
+/* ---------- XR meni (platno na levom kontroleru) ---------- */
+const PW=1024, PH=1024;
+const pc=document.createElement('canvas'); pc.width=PW; pc.height=PH;
+const px=pc.getContext('2d');
+const ptex=new THREE.CanvasTexture(pc);
+const panel=new THREE.Mesh(new THREE.PlaneGeometry(0.30,0.30),new THREE.MeshBasicMaterial({map:ptex,transparent:true,side:THREE.DoubleSide}));
+panel.rotation.x=-0.6; panel.position.set(0,0.14,-0.04); panel.visible=false;
+let xrGroup='k', btns=[], texts=[], hoverKey=null, panelHolder=null, xrSession=null;
+
+function B(x,y,w,h,label,fn,o){
+  btns.push(Object.assign({x:x,y:y,w:w,h:h,label:label,fn:fn,key:xrTab+':'+btns.length+':'+label},o||{}));
+}
+function stepper(y,name,val,minus,plus,step){
+  B(14,y,230,92,'−'+step,minus,{});
+  B(780,y,230,92,'+'+step,plus,{});
+  texts.push({x:512,y:y+46,t:name+'  '+val,mono:true});
+}
+function layout(){
+  btns=[]; texts=[];
+  ['Dodaj','Uredi','Alati'].forEach(function(t,i){
+    B(14+i*330,14,320,84,t,function(){ xrTab=i; panelDirty=true; },{tab:true,on:xrTab===i});
+  });
+  if(xrTab===0){
+    [['k','Kuhinja'],['d','Dnevna soba']].forEach(function(g,i){
+      B(14+i*505,114,495,72,g[1],function(){ xrGroup=g[0]; panelDirty=true; },{tab:true,on:xrGroup===g[0]});
+    });
+    CAT.filter(function(c){ return c.g===xrGroup; }).forEach(function(c,i){
+      B(14+(i%3)*330,200+((i/3)|0)*148,320,140,c.name,function(){ spawn(c.id); },{sub:c.w+'×'+c.h+'×'+c.d});
+    });
+  } else if(xrTab===1){
+    if(!sel){
+      texts.push({x:512,y:420,t:'Pokaži na element i okini',big:true});
+      texts.push({x:512,y:480,t:'da ga izabereš',big:true});
+    } else {
+      texts.push({x:512,y:140,t:sel.name,big:true});
+      const f=function(v){ return Math.round(v*10)/10; };
+      let y=166;
+      const row=function(name,val,minus,plus,step){ stepper(y,name,val,minus,plus,step); y+=96; };
+      row('Širina',f(sel.w)+' cm',function(){act.resize('w',-5);},function(){act.resize('w',5);},5);
+      row('Visina',f(sel.h)+' cm',function(){act.resize('h',-5);},function(){act.resize('h',5);},5);
+      row('Dubina',f(sel.d)+' cm',function(){act.resize('d',-5);},function(){act.resize('d',5);},5);
+      row('Od poda',f(sel.e)+' cm',function(){act.elev(-5);},function(){act.elev(5);},5);
+      row('Rotacija',Math.round(sel.rot)+'°',function(){act.rotate(-15);},function(){act.rotate(15);},15);
+      const hn=HAS_N[sel.kind];
+      if(hn) row(hn.label,String(Math.round(sel.n)),function(){act.resize('n',-1);},function(){act.resize('n',1);},1);
+      PALETTE.forEach(function(p,i){
+        B(14+i*124,760,116,76,'',function(){ act.color(p.c); },{fill:p.c,sw:true,on:sel.color===p.c});
+      });
+      B(14,856,490,100,'Kopiraj',act.dup);
+      B(520,856,490,100,'Obriši',act.del,{danger:true});
+    }
+  } else {
+    const L=[
+      ['Merenje',act.measure,{on:measureOn}],
+      ['Prianjanje',act.snap,{on:snapOn}],
+      ['Sačuvaj',act.save,{}],
+      ['Učitaj',act.load,{}],
+      ['Primer kuhinje',act.sample,{}],
+      ['Primer dnevne sobe',act.sampleLiving,{}],
+      ['Obriši sve',act.clear,{danger:true}]
+    ];
+    L.forEach(function(r,i){ B(14+(i%2)*505,124+((i/2)|0)*160,495,150,r[0],r[1],r[2]); });
+    B(14,124+4*160,1000,150,'Izađi iz AR',function(){ if(xrSession) xrSession.end(); },{});
+  }
+}
+function drawPanel(){
+  layout();
+  px.clearRect(0,0,PW,PH);
+  px.fillStyle='rgba(9,20,27,0.94)'; rr(px,0,0,PW,PH,48); px.fill();
+  px.textAlign='center'; px.textBaseline='middle';
+  btns.forEach(function(b){
+    const hov=b.key===hoverKey;
+    let fill=b.fill||'#1b2f3a';
+    if(!b.fill&&b.on) fill='#46c0de';
+    else if(!b.fill&&hov) fill='#2c4958';
+    px.fillStyle=fill; rr(px,b.x,b.y,b.w,b.h,22); px.fill();
+    px.lineWidth=b.sw&&b.on?8:(hov?6:2);
+    px.strokeStyle=b.sw?(b.on?'#ffffff':(hov?'#46c0de':'#33505f')):(hov?'#46c0de':'#33505f');
+    px.stroke();
+    if(b.label){
+      px.fillStyle=(!b.fill&&b.on)?'#05222b':(b.danger?'#ff8c6e':'#e5eef3');
+      px.font='600 '+(b.tab?40:(b.sub?36:44))+'px "Familjen Grotesk",system-ui,sans-serif';
+      px.fillText(b.label,b.x+b.w/2,b.y+b.h/2-(b.sub?22:0),b.w-24);
+    }
+    if(b.sub){
+      px.fillStyle='#8da0ac'; px.font='500 28px "JetBrains Mono",ui-monospace,monospace';
+      px.fillText(b.sub,b.x+b.w/2,b.y+b.h/2+34,b.w-24);
+    }
+  });
+  texts.forEach(function(t){
+    px.fillStyle='#e5eef3';
+    px.font=t.big?'600 44px "Familjen Grotesk",system-ui,sans-serif':'600 40px "JetBrains Mono",ui-monospace,monospace';
+    px.fillText(t.t,t.x,t.y,560);
+  });
+  if(xrMsg){
+    px.fillStyle='#46c0de'; px.font='600 32px "Familjen Grotesk",system-ui,sans-serif';
+    px.fillText(xrMsg,512,985,980);
+  } else if(sel&&xrTab!==1){
+    px.fillStyle='#8da0ac'; px.font='500 28px "JetBrains Mono",ui-monospace,monospace';
+    px.fillText(sel.name+'  '+sel.w+'×'+sel.h+'×'+sel.d+' cm',512,985,980);
+  }
+  ptex.needsUpdate=true;
+}
+function btnAt(uv){
+  const x=uv.x*PW, y=(1-uv.y)*PH;
+  for(let i=0;i<btns.length;i++){
+    const b=btns[i];
+    if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h) return b;
+  }
+  return null;
+}
+function pressPanel(uv){ const b=btnAt(uv); if(b&&b.fn){ b.fn(); } panelDirty=true; }
+
+/* ---------- kontroleri ---------- */
+const tmpM=new THREE.Matrix4();
+function rayFrom(c){
+  tmpM.identity().extractRotation(c.matrixWorld);
+  rc.ray.origin.setFromMatrixPosition(c.matrixWorld);
+  rc.ray.direction.set(0,0,-1).applyMatrix4(tmpM).normalize();
+}
+function buzz(c,a,ms){
+  try{
+    const gp=c.userData.src&&c.userData.src.gamepad;
+    const h=gp&&gp.hapticActuators&&gp.hapticActuators[0];
+    if(h&&h.pulse) h.pulse(a,ms);
+  }catch(e){}
+}
+function hasOther(c){ return ctls.some(function(o){ return o!==c&&o.userData.src; }); }
+function attachPanel(){
+  let holder=null;
+  ctls.forEach(function(c){ if(c.userData.src&&c.userData.src.handedness==='left') holder=c; });
+  if(!holder) ctls.forEach(function(c){ if(!holder&&c.userData.src) holder=c; });
+  if(panel.parent) panel.parent.remove(panel);
+  if(holder&&renderer.xr.isPresenting){ holder.add(panel); panel.visible=true; }
+  panelHolder=holder; panelDirty=true;
+}
+function xrSelectStart(c){
+  if(c===panelHolder&&hasOther(c)) return;
+  rayFrom(c);
+  if(panel.visible){
+    const h=rc.intersectObject(panel)[0];
+    if(h&&h.uv){ pressPanel(h.uv); buzz(c,0.4,40); return; }
+  }
+  if(measureOn){ addMeasurePoint(pickPoint(rc)); buzz(c,0.3,30); return; }
+  const it=pickItem(rc);
+  if(it){ select(it); xrTab=1; beginDrag(rc); c.userData.dragging=true; buzz(c,0.5,40); }
+  else select(null);
+}
+const ctls=[0,1].map(function(i){
+  const c=renderer.xr.getController(i);
+  c.userData={src:null,dragging:false};
+  scene.add(c);
+  const ray=new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,-1)]),
+    new THREE.LineBasicMaterial({color:0x46c0de}));
+  ray.name='ray'; ray.scale.z=1.5; ray.visible=false; c.add(ray);
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(0.008,12,8),new THREE.MeshBasicMaterial({color:0xffffff}));
+  dot.visible=false; scene.add(dot); c.userData.dot=dot;
+  c.addEventListener('connected',function(e){ c.userData.src=e.data; attachPanel(); });
+  c.addEventListener('disconnected',function(){ c.userData.src=null; attachPanel(); });
+  c.addEventListener('selectstart',function(){ xrSelectStart(c); });
+  c.addEventListener('selectend',function(){ c.userData.dragging=false; });
+  c.addEventListener('squeezestart',function(){
+    if(c===panelHolder){ panel.visible=!panel.visible; panelDirty=true; }
+  });
+  return c;
+});
+const stickT={x:0,y:0};
+function handleSticks(dt){
+  const s=renderer.xr.getSession&&renderer.xr.getSession();
+  if(!s||!sel) return;
+  let ax=0, ay=0;
+  s.inputSources.forEach(function(src){
+    if(src.handedness==='right'&&src.gamepad){
+      const a=src.gamepad.axes;
+      ax=a.length>2?a[2]:a[0]; ay=a.length>3?a[3]:a[1];
+    }
+  });
+  stickT.x-=dt; stickT.y-=dt;
+  if(Math.abs(ax)<0.35) stickT.x=0;
+  else if(stickT.x<=0){ act.rotate((ax>0?-1:1)*(snapOn?15:5)); stickT.x=0.28; }
+  if(Math.abs(ay)<0.5) stickT.y=0;
+  else if(stickT.y<=0){ act.elev(ay<0?5:-5); stickT.y=0.2; }
+}
+
+/* ---------- AR sesija ---------- */
+const arBtn=$('arBtn'), arNote=$('arNote');
+function noAR(){ arNote.textContent='AR nije dostupan u ovom pregledaču. Otvori stranicu u Meta Quest pregledaču; ovde možeš planirati na ekranu.'; }
+if(navigator.xr&&navigator.xr.isSessionSupported){
+  navigator.xr.isSessionSupported('immersive-ar').then(function(ok){
+    if(ok){ arBtn.disabled=false; arNote.textContent='Passthrough mora biti uključen na Quest-u. Kuhinja se postavlja ispred tebe u stvarnoj veličini.'; }
+    else noAR();
+  }).catch(noAR);
+} else noAR();
+arBtn.addEventListener('click',function(){
+  if(xrSession){ xrSession.end(); return; }
+  navigator.xr.requestSession('immersive-ar',{requiredFeatures:['local-floor']}).then(function(s){
+    xrSession=s;
+    s.addEventListener('end',function(){ xrSession=null; arBtn.textContent='Pokreni AR'; });
+    arBtn.textContent='Izađi iz AR';
+    return renderer.xr.setSession(s);
+  }).catch(function(err){ toast('AR nije pokrenut: '+((err&&err.message)||err)); });
+});
+renderer.xr.addEventListener('sessionstart',function(){
+  scene.background=null; grid.visible=false; renderer.setClearAlpha(0); attachPanel();
+});
+renderer.xr.addEventListener('sessionend',function(){
+  grid.visible=true; applyStage(); resize();
+  if(panel.parent) panel.parent.remove(panel);
+  ctls.forEach(function(c){ c.userData.dragging=false; c.userData.dot.visible=false; });
+});
+
+/* ---------- petlja ---------- */
+let lastT=0;
+function tick(t){
+  const dt=Math.min(0.1,((t-lastT)/1000)||0.016); lastT=t;
+  if(!renderer.xr.isPresenting) updateCam();
+  else {
+    let hov=null;
+    ctls.forEach(function(c){
+      const ud=c.userData, ray=c.getObjectByName('ray'), dot=ud.dot;
+      const holder=c===panelHolder&&hasOther(c);
+      ray.visible=!holder&&!!ud.src; dot.visible=false;
+      if(holder||!ud.src) return;
+      rayFrom(c);
+      let len=2, hit=null;
+      if(panel.visible){
+        const h=rc.intersectObject(panel)[0];
+        if(h&&h.uv){ len=h.distance; hit=h.point; const b=btnAt(h.uv); if(b) hov=b.key; }
+      }
+      if(!hit){
+        const p=pickPoint(rc);
+        if(p){ const d=p.distanceTo(rc.ray.origin); if(d<6){ len=d; hit=p; } }
+      }
+      ray.scale.z=len;
+      if(hit){ dot.position.copy(hit); dot.visible=true; }
+      if(ud.dragging) dragTo(rc);
+    });
+    if(hov!==hoverKey){ hoverKey=hov; panelDirty=true; }
+    handleSticks(dt);
+  }
+  if(xrMsg&&performance.now()-xrMsgT>3000){ xrMsg=''; panelDirty=true; }
+  if(panelDirty&&panel.visible&&renderer.xr.isPresenting){ drawPanel(); panelDirty=false; }
+  renderer.render(scene,camera);
+}
+renderer.setAnimationLoop(tick);
+
+/* ---------- pocetak ---------- */
+(function init(){
+  let ok=false;
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){ loadData(JSON.parse(raw)); ok=items.length>0; }
+  }catch(e){}
+  if(!ok) sampleKitchen();
+  refresh();
+})();
+})();
+</script>
+
+</body></html>
